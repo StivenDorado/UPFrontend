@@ -5,12 +5,14 @@ import { auth, db } from "../../../firebase"; // db se usará si deseas integrar
 import { useFavorites } from "../../context/FavoritesContext";
 import EditableProfileImage from "../components/profile/EditImage";
 import EditableName from "../components/profile/EditName";
-import Menu from "../components/profile/Menu";
+import Menu from "../components/profile/Menu";    // Menú para usuarios que NO son arrendadores
+import Menu2 from "../components/profile/Menu2";  // Menú para usuarios arrendadores
 import "../../../src/globals.css";
 
 export default function Profile() {
   const [name, setName] = useState("Usuario");
   const [profileImage, setProfileImage] = useState("/default-profile.png");
+  const [isArrendador, setIsArrendador] = useState(false);
   const { favorites } = useFavorites();
 
   useEffect(() => {
@@ -18,9 +20,13 @@ export default function Profile() {
       if (user) {
         setName(user.displayName || "Usuario");
         setProfileImage(user.photoURL || "/default-profile.png");
+        // Ejemplo: se asume que 'user.isArrendador' indica el rol del usuario.
+        // En un caso real, es posible que debas obtener este dato de Firestore o de un custom claim.
+        setIsArrendador(user.isArrendador || false);
       } else {
         setName("Usuario");
         setProfileImage("/default-profile.png");
+        setIsArrendador(false);
       }
     });
     return () => unsubscribe();
@@ -60,7 +66,8 @@ export default function Profile() {
               <EditableProfileImage image={profileImage} setImage={setProfileImage} />
               <EditableName name={name} setName={setName} />
             </div>
-            <Menu />
+            {/* Renderizado condicional: si es arrendador muestra Menu2, de lo contrario Menu */}
+            {isArrendador ? <Menu2 /> : <Menu />}
           </div>
         </div>
       </div>
