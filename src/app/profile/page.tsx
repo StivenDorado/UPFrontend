@@ -159,7 +159,7 @@ const ProfileInterface = () => {
                 <Clock className="mr-3" size={18} /> Solicitudes de reservas
               </button>
 
-              {/* Botón para registrarse como arrendatario */}
+              
 
             </>
           ) : (
@@ -212,6 +212,7 @@ const ProfileInterface = () => {
             <Home className="mr-3" size={18} /> Inicio
           </button>
 
+          {/* Botón para registrarse como arrendatario */}
           {userType === 'usuario' && (
             <Link href="/registerArrendador">
               <button
