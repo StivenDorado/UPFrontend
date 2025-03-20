@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   User,
@@ -157,14 +158,9 @@ const ProfileInterface = () => {
               >
                 <Clock className="mr-3" size={18} /> Solicitudes de reservas
               </button>
-              
+
               {/* Botón para registrarse como arrendatario */}
-              <button
-                className={`flex items-center w-full p-3 rounded-md ${activeSection === 'registro_arrendador' ? "bg-teal-600" : "hover:bg-teal-600"}`}
-                onClick={() => setActiveSection('registro_arrendador')}
-              >
-                <Users className="mr-3" size={18} /> Registrarse como Arrendatario
-              </button>
+
             </>
           ) : (
             <>
@@ -215,6 +211,17 @@ const ProfileInterface = () => {
           >
             <Home className="mr-3" size={18} /> Inicio
           </button>
+
+          {userType === 'usuario' && (
+            <Link href="/registerArrendador">
+              <button
+                className={`flex items-center w-full pt-3 pl-2 pb-3 rounded-md ${activeSection === 'registro_arrendador' ? "bg-teal-600" : "hover:bg-teal-600"}`}
+                onClick={() => setActiveSection('registerArrendador')}
+              >
+                <Users className="mr-3" size={18} /> Registrarse como Arrendatario
+              </button>
+            </Link>
+          )}
 
           {/* Botón para cerrar sesión (usa handleLogout para llamar a logout del context y redirigir) */}
           <button
