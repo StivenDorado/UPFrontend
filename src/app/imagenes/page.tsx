@@ -1,52 +1,70 @@
-"use client"
-
-import { useState, useCallback } from "react"
-import { Button } from "../components/ui/button"
-import { X, Plus, Camera, Upload } from "lucide-react"
-import Image from "next/image"
-import { useRouter } from "next/navigation" // Importa useRouter
+"use client";
+import React, { useState, useCallback } from "react";
+import imageCompression from "browser-image-compression";
+import { Button } from "../components/ui/button";
+import { X, Plus, Upload } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { storage } from "../../../firebase"; // Ajusta la ruta a tu archivo de configuración
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export default function PhotoUploader() {
-  const [photos, setPhotos] = useState<string[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const router = useRouter() // Inicializa useRouter
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
-  const handleAddPhoto = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files
-    if (!files) return
+  const handleAddPhoto = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
 
-    const newPhotos: string[] = []
+    const newPhotos: string[] = [];
     for (let i = 0; i < files.length; i++) {
-      const file = files[i]
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        setError("El archivo es demasiado grande. El tamaño máximo permitido es 5MB.")
-        continue
+      const file = files[i];
+
+      // Verifica el límite de 5MB
+      if (file.size > 5 * 1024 * 1024) {
+        setError("El archivo es demasiado grande. El tamaño máximo permitido es 5MB.");
+        continue;
       }
       if (!file.type.startsWith("image/")) {
-        setError("Solo se permiten archivos de imagen.")
-        continue
+        setError("Solo se permiten archivos de imagen.");
+        continue;
       }
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        if (e.target?.result) {
-          newPhotos.push(e.target.result as string)
-          if (newPhotos.length === files.length) {
-            setPhotos((prev) => [...prev, ...newPhotos])
-          }
-        }
+
+      try {
+        // Opciones para comprimir la imagen: maxSizeMB: 0.1 => ~100KB
+        const options = {
+          maxSizeMB: 0.1,
+          maxWidthOrHeight: 1920,
+          useWebWorker: true,
+        };
+
+        const compressedFile = await imageCompression(file, options);
+        // Crea una referencia única en Firebase Storage
+        const storageRef = ref(storage, `photos/${Date.now()}-${file.name}`);
+        // Sube el archivo comprimido
+        const snapshot = await uploadBytes(storageRef, compressedFile);
+        // Obtén la URL de descarga
+        const downloadURL = await getDownloadURL(snapshot.ref);
+        newPhotos.push(downloadURL);
+      } catch (err) {
+        console.error("Error al procesar o subir la imagen:", err);
+        setError("Error al procesar o subir la imagen.");
       }
-      reader.readAsDataURL(file)
     }
-  }, [])
+    if (newPhotos.length > 0) {
+      setPhotos((prev) => [...prev, ...newPhotos]);
+    }
+  }, []);
 
   const handleRemovePhoto = (index: number) => {
-    setPhotos((prev) => prev.filter((_, i) => i !== index))
-  }
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleNextStep = () => {
-    // Aquí puedes agregar lógica adicional antes de redirigir, si es necesario
-    router.push("/finalizar") // Redirige a la página "finalizar"
-  }
+    // Aquí puedes agregar lógica adicional si es necesario
+    router.push("/finalizar");
+  };
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
@@ -105,13 +123,12 @@ export default function PhotoUploader() {
         <p className="text-sm text-muted-foreground">Arrastra y suelta o haz clic para seleccionar</p>
       </div>
 
-      {/* Botón "Siguiente" */}
       <Button
         className="w-full py-6 text-lg mt-8 bg-[#2A8C82] text-white"
-        onClick={handleNextStep} // Asocia la función handleNextStep al botón
+        onClick={handleNextStep}
       >
         Siguiente
       </Button>
     </div>
-  )
+  );
 }
