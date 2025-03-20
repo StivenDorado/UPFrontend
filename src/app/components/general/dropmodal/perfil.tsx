@@ -1,15 +1,15 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { 
-  Menu, 
-  User, 
-  MessageSquare, 
-  Bell, 
-  Heart, 
-  HelpCircle, 
-  LogOut, 
-  Home 
+import {
+  Menu,
+  User,
+  MessageSquare,
+  Bell,
+  Heart,
+  HelpCircle,
+  LogOut,
+  Home
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "../../../../context/AuthContext";
@@ -22,7 +22,7 @@ export default function DropdownModal() {
   // Debug logs
   console.log("Usuario en DropdownModal:", user);
   console.log("¿Es arrendador?", user?.arrendador);
-  
+
   // Cierra el modal al hacer clic fuera de él
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -77,17 +77,12 @@ function Modal1() {
           Inicia sesión
         </button>
       </Link>
-      <Link href="/register">
+      <Link href="/login">
         <button className="px-4 py-3 text-left hover:bg-gray-100 transition-colors w-full">
           Regístrate
         </button>
       </Link>
       <div className="h-px bg-gray-200 my-1"></div>
-      <Link href="/experiencias">
-        <button className="px-4 py-3 text-left hover:bg-gray-100 transition-colors w-full">
-          Organiza una experiencia
-        </button>
-      </Link>
       <Link href="/ayuda">
         <button className="px-4 py-3 text-left hover:bg-gray-100 transition-colors w-full">
           Centro de ayuda
@@ -105,7 +100,7 @@ interface ModalProps {
 function Modal2({ onLogout }: ModalProps) {
   return (
     <div className="py-2 flex flex-col">
-      <Link href="/mensajes">
+      <Link href="/profile?section=mensajes">
         <button className="px-4 py-3 text-left font-medium hover:bg-gray-100 transition-colors flex items-center justify-between w-full">
           Mensajes
           <MessageSquare size={18} />
@@ -120,17 +115,13 @@ function Modal2({ onLogout }: ModalProps) {
           </div>
         </button>
       </Link>
-      <Link href="/viajes">
-        <button className="px-4 py-3 text-left hover:bg-gray-100 transition-colors w-full">
-          Viajes
-        </button>
-      </Link>
-      <Link href="/favoritos">
+      <Link href="/profile?section=favoritos">
         <button className="px-4 py-3 text-left hover:bg-gray-100 transition-colors flex items-center justify-between w-full">
           Listas de favoritos
           <Heart size={18} />
         </button>
       </Link>
+
       <Link href="/profile">
         <button className="px-4 py-3 text-left hover:bg-gray-100 transition-colors w-full">
           Perfil
@@ -157,7 +148,7 @@ function Modal2({ onLogout }: ModalProps) {
 function Modal3({ onLogout }: ModalProps) {
   return (
     <div className="py-2 flex flex-col">
-      <Link href="/mensajes">
+      <Link href="/profile?section=mensajes">
         <button className="px-4 py-3 text-left font-medium hover:bg-gray-100 transition-colors flex items-center justify-between w-full">
           Mensajes
           <MessageSquare size={18} />
@@ -172,18 +163,7 @@ function Modal3({ onLogout }: ModalProps) {
           </div>
         </button>
       </Link>
-      <Link href="/viajes">
-        <button className="px-4 py-3 text-left hover:bg-gray-100 transition-colors w-full">
-          Viajes
-        </button>
-      </Link>
-      <Link href="/favoritos">
-        <button className="px-4 py-3 text-left hover:bg-gray-100 transition-colors flex items-center justify-between w-full">
-          Listas de favoritos
-          <Heart size={18} />
-        </button>
-      </Link>
-      <Link href="/publicarPropiedad">
+      <Link href="/alojamiento">
         <button className="px-4 py-3 text-left hover:bg-gray-100 transition-colors w-full">
           Publicar Alojamiento
         </button>
@@ -195,11 +175,6 @@ function Modal3({ onLogout }: ModalProps) {
             <Home size={18} />
             <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
           </div>
-        </button>
-      </Link>
-      <Link href="/experiencias">
-        <button className="px-4 py-3 text-left hover:bg-gray-100 transition-colors w-full">
-          Organiza una experiencia
         </button>
       </Link>
       <Link href="/profile">
