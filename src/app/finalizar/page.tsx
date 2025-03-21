@@ -9,7 +9,7 @@ import { Card, CardContent } from "../components/ui/card";
 
 interface ConfirmationPageProps {
   params: {
-    id: string;
+    id: string; // Cambiado de "propiedad.id" a "id"
   };
 }
 
@@ -34,7 +34,7 @@ export default function ConfirmationPage({ params }: ConfirmationPageProps) {
             </p>
             <div className="flex flex-wrap justify-center gap-4 mb-12">
               {/* Ahora se construye el enlace con el id recibido */}
-              <Link href={`/propiedadesPublicadas/${id}`} passHref>
+              <Link href={`/profile`} passHref>
                 <Button className="gap-2">
                   <ExternalLink size={18} />
                   Ver publicación

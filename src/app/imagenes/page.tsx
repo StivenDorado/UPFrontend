@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import imageCompression from "browser-image-compression";
 import { Button } from "../components/ui/button";
 import { X, Plus } from "lucide-react";
@@ -16,55 +16,7 @@ export default function PhotoUploader() {
 
   const MAX_PHOTOS = 5;
 
-  const handleAddPhoto = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files) return;
-
-    if (photos.length + files.length > MAX_PHOTOS) {
-      setError(`No puedes subir más de ${MAX_PHOTOS} fotos.`);
-      return;
-    }
-
-    setUploading(true);
-    setError(null);
-
-    const newPhotos: string[] = [];
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-
-      if (file.size > 5 * 1024 * 1024) {
-        setError("El archivo es demasiado grande. El tamaño máximo permitido es 5MB.");
-        continue;
-      }
-      if (!file.type.startsWith("image/")) {
-        setError("Solo se permiten archivos de imagen.");
-        continue;
-      }
-
-      try {
-        const options = { maxSizeMB: 0.1, maxWidthOrHeight: 1920, useWebWorker: true };
-        const compressedFile = await imageCompression(file, options);
-        const storageRef = ref(storage, `photos/${Date.now()}-${file.name}`);
-        const snapshot = await uploadBytes(storageRef, compressedFile);
-        const downloadURL = await getDownloadURL(snapshot.ref);
-        newPhotos.push(downloadURL);
-      } catch (err) {
-        console.error("Error al procesar o subir la imagen:", err);
-        setError("Error al procesar o subir la imagen.");
-      }
-    }
-
-    if (newPhotos.length > 0) {
-      setPhotos((prev) => [...prev, ...newPhotos]);
-    }
-    setUploading(false);
-  }, [photos]);
-
-  const handleRemovePhoto = (index: number) => {
-    setPhotos((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  // Función actualizada: ya no se envían las imágenes al backend
+  // Elimina la definición duplicada y utiliza solo la función actualizada:
   const handleNextStep = async () => {
     if (photos.length === 0) {
       setError("Debes subir al menos una foto.");
@@ -73,6 +25,31 @@ export default function PhotoUploader() {
     // Aquí podrías, opcionalmente, guardar los URLs en Firestore o realizar otra acción.
     console.log("Fotos guardadas en Firebase Storage:", photos);
     router.push("/finalizar");
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Asegúrate de definir handleAddPhoto, ya que se utiliza en el input file.
+  const handleAddPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const files = Array.from(e.target.files);
+    
+    // Por cada archivo, realiza la compresión y súbelo a Firebase Storage
+    for (const file of files) {
+      try {
+        // Opcional: comprimir la imagen antes de subirla
+        const compressedFile = await imageCompression(file, { maxSizeMB: 1 });
+        const storageRef = ref(storage, `photos/${Date.now()}-${compressedFile.name}`);
+        const snapshot = await uploadBytes(storageRef, compressedFile);
+        const downloadURL = await getDownloadURL(snapshot.ref);
+        setPhotos((prev) => [...prev, downloadURL]);
+      } catch (err) {
+        console.error("Error al subir la imagen:", err);
+        setError("Error al subir la imagen.");
+      }
+    }
   };
 
   return (
