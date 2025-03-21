@@ -1,8 +1,21 @@
 import React from 'react';
-import { ArrowLeft, Eye, Pencil, Trash2, Home, PlusCircle } from 'lucide-react';
+import Link from 'next/link';
+import { Eye, Pencil, Trash2, Home, PlusCircle } from 'lucide-react';
 
-const MisPropiedades = () => {
-  const propiedades = [
+type Propiedad = {
+  id: number;
+  titulo: string;
+  ubicacion: string;
+  habitaciones: number;
+  banos: number;
+  precio: number;
+  visitas: number;
+  reservas: number;
+  estado: 'activa' | 'inactiva';
+};
+
+const MisPropiedades: React.FC = () => {
+  const propiedades: Propiedad[] = [
     {
       id: 1,
       titulo: 'Apartamento moderno en el centro',
@@ -38,13 +51,12 @@ const MisPropiedades = () => {
     }
   ];
 
-  const formatPrecio = (precio) => {
+  const formatPrecio = (precio: number): string => {
     return `$${precio.toLocaleString()}`;
   };
 
   return (
     <div className="min-h-screen bg-teal-600">
-      {/* Contenido principal */}
       <div className="bg-gray-50 min-h-screen rounded-t-lg p-4">
         {/* Encabezado con icono de casa y botón de nueva propiedad */}
         <div className="bg-teal-600 text-white p-4 rounded-lg mb-4 flex justify-between items-center">
@@ -52,10 +64,13 @@ const MisPropiedades = () => {
             <Home className="mr-2" size={24} />
             <h2 className="text-xl font-bold uppercase">MIS PROPIEDADES</h2>
           </div>
-          <button className="bg-teal-500 hover:bg-teal-400 text-white px-4 py-2 rounded-md flex items-center">
+          <Link
+            href="/alojamiento"
+            className="bg-teal-500 hover:bg-teal-400 text-white px-4 py-2 rounded-md flex items-center"
+          >
             <PlusCircle size={18} className="mr-2" />
             Nueva propiedad
-          </button>
+          </Link>
         </div>
 
         {/* Lista de propiedades */}
@@ -87,7 +102,7 @@ const MisPropiedades = () => {
                     </svg>
                     {propiedad.ubicacion}
                   </p>
-                  
+
                   <div className="flex mb-2">
                     <div className="flex items-center mr-4">
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
@@ -149,12 +164,11 @@ const MisPropiedades = () => {
 
                   {/* Botón de desactivar/activar */}
                   <div className="mt-2">
-                    <button 
-                      className={`w-full py-1 px-2 rounded-md text-sm ${
-                        propiedad.estado === 'activa' 
-                          ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' 
-                          : 'bg-green-100 text-green-700 hover:bg-green-200'
-                      }`}
+                    <button
+                      className={`w-full py-1 px-2 rounded-md text-sm ${propiedad.estado === 'activa'
+                        ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        : 'bg-green-100 text-green-700 hover:bg-green-200'
+                        }`}
                     >
                       {propiedad.estado === 'activa' ? 'Desactivar' : 'Activar'}
                     </button>
