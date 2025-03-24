@@ -47,7 +47,9 @@ export default function CaracteristicasPage(): JSX.Element {
 
   useEffect(() => {
     if (!propiedad_id) {
-      setError("No se encontró el id de la propiedad. Por favor, regresa y crea el alojamiento.");
+      setError(
+        "No se encontró el id de la propiedad. Por favor, regresa y crea el alojamiento."
+      );
     }
   }, [propiedad_id]);
 
@@ -113,7 +115,8 @@ export default function CaracteristicasPage(): JSX.Element {
       }
       const result = await response.json();
       console.log("Características guardadas:", result);
-      router.push("/imagenes");
+      // Redirigimos a la página de imágenes incluyendo el id de la propiedad en la URL
+      router.push(`/imagenes?propiedadId=${propiedad_id}`);
     } catch (err) {
       console.error("Error en la petición:", err);
       setError("Error en la petición");
@@ -139,13 +142,23 @@ export default function CaracteristicasPage(): JSX.Element {
           >
             {["Apartamento", "Casa", "Casa de Familia", "Estudio", "Habitación"].map((tipo) => (
               <div key={tipo} className="relative">
-                <RadioGroupItem value={tipo} id={`housing-${tipo}`} className="peer sr-only" />
+                <RadioGroupItem
+                  value={tipo}
+                  id={`housing-${tipo}`}
+                  className="peer sr-only"
+                />
                 <Label
                   htmlFor={`housing-${tipo}`}
                   className="flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:border-[#275950] peer-data-[state=checked]:border-[#275950] peer-data-[state=checked]:bg-[#275950]/10 transition-all h-full"
                 >
                   <div className="flex items-center justify-center w-12 h-12 mb-2 rounded-full bg-[#275950]/10">
-                    {tipo === "Apartamento" ? <Building className="h-6 w-6" /> : tipo === "Casa" ? <Home className="h-6 w-6" /> : <Home className="h-6 w-6" />}
+                    {tipo === "Apartamento" ? (
+                      <Building className="h-6 w-6" />
+                    ) : tipo === "Casa" ? (
+                      <Home className="h-6 w-6" />
+                    ) : (
+                      <Home className="h-6 w-6" />
+                    )}
                   </div>
                   <span className="text-sm font-medium text-[#260101]">{tipo}</span>
                 </Label>
@@ -159,7 +172,17 @@ export default function CaracteristicasPage(): JSX.Element {
             Servicios
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {["Wifi", "Energía", "TV", "Cocina", "Agua", "Garaje", "Lavadora", "Nevera", "Gas"].map((servicio) => (
+            {[
+              "Wifi",
+              "Energía",
+              "TV",
+              "Cocina",
+              "Agua",
+              "Garaje",
+              "Lavadora",
+              "Nevera",
+              "Gas",
+            ].map((servicio) => (
               <div
                 key={servicio}
                 onClick={() => handleServiceChange(servicio)}
@@ -175,9 +198,30 @@ export default function CaracteristicasPage(): JSX.Element {
                   />
                   <div className="flex items-center space-x-3">
                     <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[#275950]/10">
-                      {servicio === "Wifi" ? <Wifi className="h-6 w-6" /> : servicio === "Energía" ? <Flame className="h-6 w-6" /> : servicio === "TV" ? <Tv className="h-6 w-6" /> : servicio === "Cocina" ? <UtensilsCrossed className="h-6 w-6" /> : servicio === "Agua" ? <Droplet className="h-6 w-6" /> : servicio === "Garaje" ? <Car className="h-6 w-6" /> : servicio === "Lavadora" ? <Waves className="h-6 w-6" /> : servicio === "Nevera" ? <Refrigerator className="h-6 w-6" /> : <Flame className="h-6 w-6" />}
+                      {servicio === "Wifi" ? (
+                        <Wifi className="h-6 w-6" />
+                      ) : servicio === "Energía" ? (
+                        <Flame className="h-6 w-6" />
+                      ) : servicio === "TV" ? (
+                        <Tv className="h-6 w-6" />
+                      ) : servicio === "Cocina" ? (
+                        <UtensilsCrossed className="h-6 w-6" />
+                      ) : servicio === "Agua" ? (
+                        <Droplet className="h-6 w-6" />
+                      ) : servicio === "Garaje" ? (
+                        <Car className="h-6 w-6" />
+                      ) : servicio === "Lavadora" ? (
+                        <Waves className="h-6 w-6" />
+                      ) : servicio === "Nevera" ? (
+                        <Refrigerator className="h-6 w-6" />
+                      ) : (
+                        <Flame className="h-6 w-6" />
+                      )}
                     </div>
-                    <Label htmlFor={`service-${servicio}`} className="text-sm font-medium text-[#260101]">
+                    <Label
+                      htmlFor={`service-${servicio}`}
+                      className="text-sm font-medium text-[#260101]"
+                    >
                       {servicio}
                     </Label>
                   </div>
@@ -196,11 +240,19 @@ export default function CaracteristicasPage(): JSX.Element {
               <Bed className="h-6 w-6 mb-2" />
               <span className="text-sm mb-2">Habitaciones</span>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => setBedrooms(Math.max(1, bedrooms - 1))}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setBedrooms(Math.max(1, bedrooms - 1))}
+                >
                   -
                 </Button>
                 <span className="px-4 py-2">{bedrooms}</span>
-                <Button variant="outline" size="sm" onClick={() => setBedrooms(bedrooms + 1)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setBedrooms(bedrooms + 1)}
+                >
                   +
                 </Button>
               </div>
@@ -209,11 +261,19 @@ export default function CaracteristicasPage(): JSX.Element {
               <Bath className="h-6 w-6 mb-2" />
               <span className="text-sm mb-2">Baños</span>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => setBathrooms(Math.max(1, bathrooms - 1))}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setBathrooms(Math.max(1, bathrooms - 1))}
+                >
                   -
                 </Button>
                 <span className="px-4 py-2">{bathrooms}</span>
-                <Button variant="outline" size="sm" onClick={() => setBathrooms(bathrooms + 1)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setBathrooms(bathrooms + 1)}
+                >
                   +
                 </Button>
               </div>
@@ -222,11 +282,19 @@ export default function CaracteristicasPage(): JSX.Element {
               <Users className="h-6 w-6 mb-2" />
               <span className="text-sm mb-2">Capacidad</span>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => setCapacity(Math.max(1, capacity - 1))}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCapacity(Math.max(1, capacity - 1))}
+                >
                   -
                 </Button>
                 <span className="px-4 py-2">{capacity}</span>
-                <Button variant="outline" size="sm" onClick={() => setCapacity(capacity + 1)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCapacity(capacity + 1)}
+                >
                   +
                 </Button>
               </div>
@@ -235,11 +303,21 @@ export default function CaracteristicasPage(): JSX.Element {
               <ParkingCircle className="h-6 w-6 mb-2" />
               <span className="text-sm mb-2">Estacionamientos</span>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => setParkingSpaces(Math.max(0, parkingSpaces - 1))}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setParkingSpaces(Math.max(0, parkingSpaces - 1))
+                  }
+                >
                   -
                 </Button>
                 <span className="px-4 py-2">{parkingSpaces}</span>
-                <Button variant="outline" size="sm" onClick={() => setParkingSpaces(parkingSpaces + 1)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setParkingSpaces(parkingSpaces + 1)}
+                >
                   +
                 </Button>
               </div>
@@ -257,7 +335,9 @@ export default function CaracteristicasPage(): JSX.Element {
                 key={feature}
                 onClick={() => handleOutdoorFeatureChange(feature)}
                 className={`cursor-pointer border p-4 rounded-lg transition-all hover:border-[#275950] ${
-                  outdoorFeatures.includes(feature) ? "border-[#275950] bg-[#275950]/10" : ""
+                  outdoorFeatures.includes(feature)
+                    ? "border-[#275950] bg-[#275950]/10"
+                    : ""
                 }`}
               >
                 <div className="flex items-center space-x-3">
@@ -268,9 +348,20 @@ export default function CaracteristicasPage(): JSX.Element {
                   />
                   <div className="flex items-center space-x-3">
                     <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[#275950]/10">
-                      {feature === "Jardín" ? <TreePine className="h-6 w-6" /> : feature === "Piscina" ? <Droplet className="h-6 w-6" /> : feature === "Vista a la montaña" ? <Mountain className="h-6 w-6" /> : <Home className="h-6 w-6" />}
+                      {feature === "Jardín" ? (
+                        <TreePine className="h-6 w-6" />
+                      ) : feature === "Piscina" ? (
+                        <Droplet className="h-6 w-6" />
+                      ) : feature === "Vista a la montaña" ? (
+                        <Mountain className="h-6 w-6" />
+                      ) : (
+                        <Home className="h-6 w-6" />
+                      )}
                     </div>
-                    <Label htmlFor={`feature-${feature}`} className="text-sm font-medium text-[#260101]">
+                    <Label
+                      htmlFor={`feature-${feature}`}
+                      className="text-sm font-medium text-[#260101]"
+                    >
                       {feature}
                     </Label>
                   </div>
@@ -293,15 +384,25 @@ export default function CaracteristicasPage(): JSX.Element {
             >
               {["Amoblado", "Sin Amoblar"].map((opcion) => (
                 <div key={opcion} className="relative">
-                  <RadioGroupItem value={opcion} id={`furnishing-${opcion}`} className="peer sr-only" />
+                  <RadioGroupItem
+                    value={opcion}
+                    id={`furnishing-${opcion}`}
+                    className="peer sr-only"
+                  />
                   <Label
                     htmlFor={`furnishing-${opcion}`}
                     className="flex items-center p-4 border-2 rounded-lg cursor-pointer hover:border-[#275950] peer-data-[state=checked]:border-[#275950] peer-data-[state=checked]:bg-[#275950]/10 transition-all h-full"
                   >
                     <div className="flex items-center justify-center w-10 h-10 mr-3 rounded-full bg-[#275950]/10">
-                      {opcion === "Amoblado" ? <Sofa className="h-6 w-6" /> : <Ban className="h-6 w-6" />}
+                      {opcion === "Amoblado" ? (
+                        <Sofa className="h-6 w-6" />
+                      ) : (
+                        <Ban className="h-6 w-6" />
+                      )}
                     </div>
-                    <span className="text-sm font-medium text-[#260101]">{opcion}</span>
+                    <span className="text-sm font-medium text-[#260101]">
+                      {opcion}
+                    </span>
                   </Label>
                 </div>
               ))}
@@ -317,15 +418,25 @@ export default function CaracteristicasPage(): JSX.Element {
             >
               {["Acepta mascotas", "No acepta mascotas"].map((opcion) => (
                 <div key={opcion} className="relative">
-                  <RadioGroupItem value={opcion} id={`pet-${opcion}`} className="peer sr-only" />
+                  <RadioGroupItem
+                    value={opcion}
+                    id={`pet-${opcion}`}
+                    className="peer sr-only"
+                  />
                   <Label
                     htmlFor={`pet-${opcion}`}
                     className="flex items-center p-4 border-2 rounded-lg cursor-pointer hover:border-[#275950] peer-data-[state=checked]:border-[#275950] peer-data-[state=checked]:bg-[#275950]/10 transition-all h-full"
                   >
                     <div className="flex items-center justify-center w-10 h-10 mr-3 rounded-full bg-[#275950]/10">
-                      {opcion === "Acepta mascotas" ? <Dog className="h-6 w-6" /> : <Ban className="h-6 w-6" />}
+                      {opcion === "Acepta mascotas" ? (
+                        <Dog className="h-6 w-6" />
+                      ) : (
+                        <Ban className="h-6 w-6" />
+                      )}
                     </div>
-                    <span className="text-sm font-medium text-[#260101]">{opcion}</span>
+                    <span className="text-sm font-medium text-[#260101]">
+                      {opcion}
+                    </span>
                   </Label>
                 </div>
               ))}

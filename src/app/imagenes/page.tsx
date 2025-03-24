@@ -4,7 +4,7 @@ import imageCompression from "browser-image-compression";
 import { Button } from "../components/ui/button";
 import { X, Plus } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { storage } from "../../../firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
@@ -13,33 +13,21 @@ export default function PhotoUploader() {
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // Se obtiene el id de la propiedad desde la URL (por ejemplo, ?propiedadId=3)
+  const propiedadId = searchParams.get("propiedadId");
 
   const MAX_PHOTOS = 5;
 
-  // Elimina la definición duplicada y utiliza solo la función actualizada:
-  const handleNextStep = async () => {
-    if (photos.length === 0) {
-      setError("Debes subir al menos una foto.");
-      return;
-    }
-    // Aquí podrías, opcionalmente, guardar los URLs en Firestore o realizar otra acción.
-    console.log("Fotos guardadas en Firebase Storage:", photos);
-    router.push("/finalizar");
-  };
-
-  const handleRemovePhoto = (index: number) => {
-    setPhotos((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  // Asegúrate de definir handleAddPhoto, ya que se utiliza en el input file.
+  // Función para subir la imagen a Firebase y almacenar la URL en el estado
   const handleAddPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     const files = Array.from(e.target.files);
+    setUploading(true);
     
-    // Por cada archivo, realiza la compresión y súbelo a Firebase Storage
     for (const file of files) {
       try {
-        // Opcional: comprimir la imagen antes de subirla
+        // Comprimir la imagen antes de subirla (opcional)
         const compressedFile = await imageCompression(file, { maxSizeMB: 1 });
         const storageRef = ref(storage, `photos/${Date.now()}-${compressedFile.name}`);
         const snapshot = await uploadBytes(storageRef, compressedFile);
@@ -49,6 +37,56 @@ export default function PhotoUploader() {
         console.error("Error al subir la imagen:", err);
         setError("Error al subir la imagen.");
       }
+    }
+    setUploading(false);
+  };
+
+  // Función para eliminar una imagen del estado
+  const handleRemovePhoto = (index: number) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Función para enviar las URLs al backend y guardar los datos en la base de datos
+  const handleNextStep = async () => {
+    if (!propiedadId) {
+      setError("No se encontró el id de la propiedad. Asegúrate de que se esté pasando en la URL.");
+      return;
+    }
+    if (photos.length === 0) {
+      setError("Debes subir al menos una foto.");
+      return;
+    }
+    
+    // Construir el payload con el ID de la propiedad y el array de imágenes
+    const payload = {
+      propiedadId: Number(propiedadId), // Convertir a número si es necesario
+      imagenes: photos.map((url, index) => ({
+        url,
+        orden: index
+      }))
+    };
+
+    try {
+      const response = await fetch("http://localhost:4000/api/images", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // Si requieres autenticación, agrega el header de Authorization:
+          // "Authorization": "Bearer <TU_TOKEN_JWT_DE_ARRENDADOR>"
+        },
+        body: JSON.stringify(payload)
+      });
+      
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Error al guardar imágenes en el backend");
+      }
+      console.log("Imágenes guardadas en backend:", data);
+      console.log("Fotos guardadas en Firebase Storage:", photos);
+      router.push("/finalizar");
+    } catch (err) {
+      console.error("Error al guardar imágenes en el backend:", err);
+      setError("Error al guardar imágenes en el backend.");
     }
   };
 
