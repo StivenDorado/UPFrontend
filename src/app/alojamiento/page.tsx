@@ -1,33 +1,72 @@
 "use client";
 
-import React, { useState } from "react";
-import { useAuth } from "../../context/AuthContext"; // Ajusta la ruta según tu proyecto
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../../context/AuthContext";
 import dynamic from "next/dynamic";
 import Header from "../components/general/header/Headerlg";
 import Footer from "../components/general/footer/Footer";
 import { useRouter } from "next/navigation";
 
 // Cargar el mapa dinámicamente sin SSR
-const MapaComponent = dynamic(() => import("../components/Map/MapaComponent"), { ssr: false });
+const MapaComponent = dynamic(() => import("../components/Map/MapaComponent"), { 
+  ssr: false,
+  loading: () => <p>Cargando mapa...</p>
+});
 
 export default function AlojamientoForm() {
-  const { user } = useAuth(); // Obtenemos el usuario autenticado
+  const { user } = useAuth();
   const router = useRouter();
 
-  // Estados para los datos del formulario de propiedad
+  // Estados para los datos del formulario
   const [formData, setFormData] = useState({
     nombre: "",
     direccion: "",
     costo: "",
     descripcion: "",
   });
-  // Estado para la posición del mapa (lat, lng)
-  const [position, setPosition] = useState<[number, number]>([4.5709, -74.2973]); // Ejemplo: Bogotá, Colombia
+
+  const [position, setPosition] = useState<[number, number]>([4.5709, -74.2973]); // Bogotá por defecto
+  const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  // Geocodificación: Convertir dirección a coordenadas
+  const geocodeAddress = async (address: string) => {
+    if (!address) return;
+
+    setIsSearching(true);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`
+      );
+      const data = await response.json();
+
+      if (data && data.length > 0) {
+        const { lat, lon } = data[0];
+        setPosition([parseFloat(lat), parseFloat(lon)]);
+        setError(null);
+      } else {
+        setError("Dirección no encontrada");
+      }
+    } catch (error) {
+      console.error("Error en geocodificación:", error);
+      setError("Error al buscar la dirección");
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Ejecutar geocodificación cuando cambie la dirección
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      if (formData.direccion.trim().length > 3) {
+        geocodeAddress(formData.direccion);
+      }
+    }, 1000); // Debounce de 1 segundo
+
+    return () => clearTimeout(delayDebounce);
+  }, [formData.direccion]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
@@ -36,11 +75,17 @@ export default function AlojamientoForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Verifica que el usuario esté autenticado
     if (!user || !user.uid) {
       setError("Usuario no autenticado.");
       return;
     }
+
+    // Validar que tenemos coordenadas válidas
+    if (position[0] === 4.5709 && position[1] === -74.2973) {
+      setError("Por favor selecciona una ubicación válida en el mapa");
+      return;
+    }
+
     const arrendador_uid = user.uid;
 
     // Construir el objeto de datos a enviar
@@ -70,12 +115,10 @@ export default function AlojamientoForm() {
       }
 
       const result = await response.json();
-      console.log("Propiedad creada:", result);
-      // Redirige a la página de características pasando el id en la URL
       router.push(`/caracteristicas?propiedadId=${result.id}`);
     } catch (error) {
       console.error("Error en la petición:", error);
-      setError("Error en la petición");
+      setError("Error en la conexión con el servidor");
     }
   };
 
@@ -134,6 +177,7 @@ export default function AlojamientoForm() {
                   required
                   className="w-full px-3 py-2 border border-[#9BF2EA] rounded-md focus:outline-none focus:ring-2 focus:ring-[#41BFB3]"
                 />
+                {isSearching && <p className="text-sm text-[#41BFB3]">Buscando ubicación...</p>}
               </div>
 
               <div className="space-y-2">
@@ -191,7 +235,7 @@ export default function AlojamientoForm() {
             <div className="mb-4">
               <h2 className="text-xl font-semibold text-[#275950]">Ubicación</h2>
               <p className="text-[#41BFB3] text-sm">
-                Haz clic en el mapa para seleccionar la ubicación
+                {formData.direccion || "Ingresa una dirección o haz clic en el mapa"}
               </p>
             </div>
 
