@@ -5,20 +5,17 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 're
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-// Solución para los iconos (importarlos correctamente)
-const DefaultIcon = L.icon({
-  iconUrl: '/images/marker-icon.png',
-  iconRetinaUrl: '/images/marker-icon-2x.png',
-  shadowUrl: '/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
+// Configuración del icono personalizado
+const CustomIcon = L.icon({
+  iconUrl: '/marcador-de-posicion.png', // Ruta directa desde public
+  iconSize: [32, 32], // Tamaño del icono en píxeles [ancho, alto]
+  iconAnchor: [16, 32], // Punto del icono que corresponderá a la posición del marcador
+  popupAnchor: [0, -32] // Punto desde el cual se abrirá el popup
 });
 
-L.Marker.prototype.options.icon = DefaultIcon;
+L.Marker.prototype.options.icon = CustomIcon;
 
-// Componente para manejar eventos del mapa
+// Resto del código permanece igual...
 const MapEvents = ({ setPosition }: { setPosition: (pos: [number, number]) => void }) => {
   const map = useMapEvents({
     click(e) {
@@ -29,7 +26,6 @@ const MapEvents = ({ setPosition }: { setPosition: (pos: [number, number]) => vo
   return null;
 };
 
-// Componente para actualizar la vista del mapa cuando cambia la posición
 const UpdateMapView = ({ position }: { position: [number, number] }) => {
   const map = useMap();
   useEffect(() => {
