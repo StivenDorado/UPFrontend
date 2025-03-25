@@ -7,19 +7,24 @@ import L from 'leaflet';
 
 // Configuración del icono personalizado
 const CustomIcon = L.icon({
-  iconUrl: '/marcador-de-posicion.png', // Ruta directa desde public
-  iconSize: [32, 32], // Tamaño del icono en píxeles [ancho, alto]
-  iconAnchor: [16, 32], // Punto del icono que corresponderá a la posición del marcador
-  popupAnchor: [0, -32] // Punto desde el cual se abrirá el popup
+  iconUrl: '/marcador-de-posicion.png',
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32]
 });
 
 L.Marker.prototype.options.icon = CustomIcon;
 
-// Resto del código permanece igual...
-const MapEvents = ({ setPosition }: { setPosition: (pos: [number, number]) => void }) => {
+interface MapEventsProps {
+  setPosition: (pos: [number, number]) => void;
+  updateAddress: (lat: number, lng: number) => Promise<void>;
+}
+
+const MapEvents = ({ setPosition, updateAddress }: MapEventsProps) => {
   const map = useMapEvents({
-    click(e) {
+    async click(e) {
       setPosition([e.latlng.lat, e.latlng.lng]);
+      await updateAddress(e.latlng.lat, e.latlng.lng);
       map.flyTo(e.latlng, map.getZoom());
     },
   });
@@ -34,13 +39,17 @@ const UpdateMapView = ({ position }: { position: [number, number] }) => {
   return null;
 };
 
+interface MapaComponentProps {
+  position: [number, number];
+  setPosition: (position: [number, number]) => void;
+  updateAddress: (lat: number, lng: number) => Promise<void>;
+}
+
 export default function MapaComponent({
   position,
   setPosition,
-}: {
-  position: [number, number];
-  setPosition: (position: [number, number]) => void;
-}) {
+  updateAddress
+}: MapaComponentProps) {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -64,7 +73,7 @@ export default function MapaComponent({
       <Marker position={position}>
         <Popup>Ubicación seleccionada</Popup>
       </Marker>
-      <MapEvents setPosition={setPosition} />
+      <MapEvents setPosition={setPosition} updateAddress={updateAddress} />
       <UpdateMapView position={position} />
     </MapContainer>
   );

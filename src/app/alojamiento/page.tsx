@@ -55,6 +55,33 @@ export default function AlojamientoForm() {
     }
   };
 
+  // Reverse geocoding: Convertir coordenadas a dirección
+  const reverseGeocode = async (lat: number, lng: number) => {
+    setIsSearching(true);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+      );
+      const data = await response.json();
+      
+      if (data && data.address) {
+        const address = data.display_name || 
+          `${data.address.road || ''} ${data.address.house_number || ''}, ${data.address.city || data.address.town || data.address.village || ''}`;
+        
+        setFormData(prev => ({
+          ...prev,
+          direccion: address.trim()
+        }));
+        setError(null);
+      }
+    } catch (error) {
+      console.error("Error en reverse geocoding:", error);
+      setError("No se pudo obtener la dirección para esta ubicación");
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   // Ejecutar geocodificación cuando cambie la dirección
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
@@ -240,7 +267,11 @@ export default function AlojamientoForm() {
             </div>
 
             <div className="h-[400px]">
-              <MapaComponent position={position} setPosition={setPosition} />
+              <MapaComponent 
+                position={position} 
+                setPosition={setPosition} 
+                updateAddress={reverseGeocode} 
+              />
             </div>
           </div>
         </div>
