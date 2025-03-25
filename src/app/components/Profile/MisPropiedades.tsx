@@ -126,8 +126,26 @@ const MisPropiedades: React.FC = () => {
 
   if (loading) return <p>Cargando propiedades...</p>;
   if (error) return <p>Error: {error}</p>;
+
+  // Si no hay propiedades publicadas, muestra un mensaje y un botón para crear una propiedad
   if (propiedades.length === 0)
-    return <p>No se encontraron propiedades publicadas.</p>;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <div className="bg-gray-50 p-6 rounded-lg shadow-lg text-center">
+          <h2 className="text-2xl font-bold text-teal-600 mb-3">No tienes propiedades publicadas</h2>
+          <p className="text-gray-700 mb-4">
+            Crea tu primera propiedad para empezar a recibir reservas.
+          </p>
+          <Link
+            href="/alojamiento"
+            className="bg-teal-500 hover:bg-teal-400 text-white px-4 py-2 rounded-md flex items-center justify-center"
+          >
+            <PlusCircle size={18} className="mr-2" />
+            Nueva propiedad
+          </Link>
+        </div>
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-teal-600">

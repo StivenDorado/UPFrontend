@@ -25,7 +25,7 @@ const Perfil: React.FC = () => {
   // Se inicializa el estado usando algunos valores predeterminados;
   // para nombre y correo se usan valores de Google si existen.
   const [userInfo, setUserInfo] = useState<UserInfo>({
-    nombre: user?.displayName || "MURIEL ESPENCER",
+    nombre: user?.displayName || "MURIEL ESNEIDER",
     ubicacion: "DE LA CRUZ BARRIO",
     fechaUnion: "ABRIL DEL 2024",
     correo: user?.email || "correo@ejemplo.com",
