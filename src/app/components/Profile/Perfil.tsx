@@ -11,7 +11,6 @@ interface UserInfo {
   fechaUnion: string;
   correo: string;
   telefono: string;
-  idiomas: string[];
   propiedadesFavoritas: number;
   ultimaActividad: string;
   verificado: boolean;
@@ -30,7 +29,6 @@ const Perfil: React.FC = () => {
     fechaUnion: "ABRIL DEL 2024",
     correo: user?.email || "correo@ejemplo.com",
     telefono: "+1 234 567 890",
-    idiomas: ["Español", "Inglés", "Francés"],
     propiedadesFavoritas: 12,
     ultimaActividad: "Hace 2 días",
     verificado: true
@@ -146,20 +144,6 @@ const Perfil: React.FC = () => {
               <Calendar size={16} className="mr-1 text-teal-600" />
               <span>SE UNIÓ EN {userInfo.fechaUnion}</span>
             </div>
-          </div>
-          
-          {/* Etiquetas de idioma */}
-          <div className="flex flex-wrap gap-2 mt-3">
-            {userInfo.idiomas.map((idioma, index) => (
-              <span key={index} className="px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-sm">
-                {idioma}
-              </span>
-            ))}
-            {isEditing && (
-              <button className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm flex items-center">
-                <span className="text-lg mr-1">+</span> Añadir
-              </button>
-            )}
           </div>
           
           {/* Estadísticas rápidas */}

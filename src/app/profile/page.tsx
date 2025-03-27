@@ -26,9 +26,11 @@ import MisPropiedades from '../components/Profile/MisPropiedades';
 import Mensajes from '../components/Profile/Mensajes';
 import OfertasPrecio from '../components/Profile/OfertasPrecio';
 import Perfil from '../components/Profile/Perfil';
+import FormularioReporte from '../components/Profile/FormularioReportes';
 
 import { useAuth } from '../../context/AuthContext';
 import LandlordRegistrationModal from '../components/Profile/RegistarArrendador'; // Importa el nuevo modal
+
 
 const ProfileInterface = () => {
   const { user, logout } = useAuth(); // Obtenemos el usuario autenticado desde el context
@@ -83,7 +85,7 @@ const ProfileInterface = () => {
       case 'mensajes':
         return <Mensajes />;
       case 'reportes':
-        return <div>Enviar Reportes</div>;
+        return <FormularioReporte/>;
       case 'propiedades':
         return <MisPropiedades />;
       case 'inicio':
