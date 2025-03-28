@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -7,13 +6,11 @@ import L from 'leaflet';
 
 // Configuración del icono personalizado
 const CustomIcon = L.icon({
-  iconUrl: '/marcador-de-posicion.png',
+  iconUrl: '/marcador-de-posicion.png', // Asegúrate que este archivo exista en la carpeta public
   iconSize: [32, 32],
   iconAnchor: [16, 32],
   popupAnchor: [0, -32]
 });
-
-L.Marker.prototype.options.icon = CustomIcon;
 
 interface MapEventsProps {
   setPosition: (pos: [number, number]) => void;
@@ -23,7 +20,9 @@ interface MapEventsProps {
 const MapEvents = ({ setPosition, updateAddress }: MapEventsProps) => {
   const map = useMapEvents({
     async click(e) {
-      setPosition([e.latlng.lat, e.latlng.lng]);
+      const newPos: [number, number] = [e.latlng.lat, e.latlng.lng];
+      console.log("Nuevo clic en el mapa:", newPos);
+      setPosition(newPos);
       await updateAddress(e.latlng.lat, e.latlng.lng);
       map.flyTo(e.latlng, map.getZoom());
     },
@@ -45,13 +44,8 @@ interface MapaComponentProps {
   updateAddress: (lat: number, lng: number) => Promise<void>;
 }
 
-export default function MapaComponent({
-  position,
-  setPosition,
-  updateAddress
-}: MapaComponentProps) {
+export default function MapaComponent({ position, setPosition, updateAddress }: MapaComponentProps) {
   const [isClient, setIsClient] = useState(false);
-
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -70,7 +64,7 @@ export default function MapaComponent({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
-      <Marker position={position}>
+      <Marker position={position} icon={CustomIcon}>
         <Popup>Ubicación seleccionada</Popup>
       </Marker>
       <MapEvents setPosition={setPosition} updateAddress={updateAddress} />

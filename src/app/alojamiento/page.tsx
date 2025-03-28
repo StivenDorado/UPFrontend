@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import dynamic from "next/dynamic";
@@ -7,7 +6,7 @@ import Header from "../components/general/header/Headerlg";
 import Footer from "../components/general/footer/Footer";
 import { useRouter } from "next/navigation";
 
-// Cargar el mapa dinámicamente sin SSR
+// Importar el MapaComponent dinámicamente sin SSR
 const MapaComponent = dynamic(() => import("../components/Map/MapaComponent"), { 
   ssr: false,
   loading: () => <p>Cargando mapa...</p>
@@ -24,22 +23,47 @@ export default function AlojamientoForm() {
     costo: "",
     descripcion: "",
   });
-
-  const [position, setPosition] = useState<[number, number]>([4.5709, -74.2973]); // Bogotá por defecto
+  // Estado para la posición; por defecto se asignan las coordenadas de Bogotá
+  const [position, setPosition] = useState<[number, number]>([4.5709, -74.2973]);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Geocodificación: Convertir dirección a coordenadas
+  // Reverse geocoding: Convertir coordenadas a dirección
+  const reverseGeocode = async (lat: number, lng: number) => {
+    setIsSearching(true);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+      );
+      const data = await response.json();
+      console.log("Respuesta reverseGeocode:", data);
+      
+      if (data && data.address) {
+        const address = data.display_name || 
+          `${data.address.road || ''} ${data.address.house_number || ''}, ${data.address.city || data.address.town || data.address.village || ''}`;
+        setFormData(prev => ({
+          ...prev,
+          direccion: address.trim()
+        }));
+        setError(null);
+      }
+    } catch (error) {
+      console.error("Error en reverse geocoding:", error);
+      setError("No se pudo obtener la dirección para esta ubicación");
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Geocoding: Convertir dirección a coordenadas
   const geocodeAddress = async (address: string) => {
     if (!address) return;
-
     setIsSearching(true);
     try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`
       );
       const data = await response.json();
-
       if (data && data.length > 0) {
         const { lat, lon } = data[0];
         setPosition([parseFloat(lat), parseFloat(lon)]);
@@ -55,41 +79,13 @@ export default function AlojamientoForm() {
     }
   };
 
-  // Reverse geocoding: Convertir coordenadas a dirección
-  const reverseGeocode = async (lat: number, lng: number) => {
-    setIsSearching(true);
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
-      );
-      const data = await response.json();
-      
-      if (data && data.address) {
-        const address = data.display_name || 
-          `${data.address.road || ''} ${data.address.house_number || ''}, ${data.address.city || data.address.town || data.address.village || ''}`;
-        
-        setFormData(prev => ({
-          ...prev,
-          direccion: address.trim()
-        }));
-        setError(null);
-      }
-    } catch (error) {
-      console.error("Error en reverse geocoding:", error);
-      setError("No se pudo obtener la dirección para esta ubicación");
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  // Ejecutar geocodificación cuando cambie la dirección
+  // Ejecutar geocodificación cuando el campo dirección cambie (debounce de 1 segundo)
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
       if (formData.direccion.trim().length > 3) {
         geocodeAddress(formData.direccion);
       }
-    }, 1000); // Debounce de 1 segundo
-
+    }, 1000);
     return () => clearTimeout(delayDebounce);
   }, [formData.direccion]);
 
@@ -107,16 +103,15 @@ export default function AlojamientoForm() {
       return;
     }
 
-    // Validar que tenemos coordenadas válidas
+    // Si deseas que el usuario no envíe la ubicación por defecto, mantén la siguiente validación.
+    // Si deseas permitir la ubicación por defecto, puedes eliminarla.
     if (position[0] === 4.5709 && position[1] === -74.2973) {
       setError("Por favor selecciona una ubicación válida en el mapa");
       return;
     }
 
     const arrendador_uid = user.uid;
-
-    // Construir el objeto de datos a enviar
-    const data = {
+    const dataToSend = {
       titulo: formData.nombre,
       descripcion: formData.descripcion,
       direccion: formData.direccion,
@@ -126,13 +121,13 @@ export default function AlojamientoForm() {
       lng: position[1],
     };
 
+    console.log("Enviando datos:", dataToSend);
+
     try {
       const response = await fetch("http://localhost:4000/api/propiedades", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dataToSend),
       });
 
       if (!response.ok) {
@@ -158,7 +153,7 @@ export default function AlojamientoForm() {
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Formulario de propiedad */}
+          {/* Formulario */}
           <div className="bg-white p-6 rounded-lg shadow-md border border-[#9BF2EA]">
             <div className="mb-4">
               <h2 className="text-xl font-semibold text-[#275950]">
@@ -171,10 +166,7 @@ export default function AlojamientoForm() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <label
-                  htmlFor="nombre"
-                  className="block font-medium text-[#275950]"
-                >
+                <label htmlFor="nombre" className="block font-medium text-[#275950]">
                   Nombre del Alojamiento
                 </label>
                 <input
@@ -189,10 +181,7 @@ export default function AlojamientoForm() {
               </div>
 
               <div className="space-y-2">
-                <label
-                  htmlFor="direccion"
-                  className="block font-medium text-[#275950]"
-                >
+                <label htmlFor="direccion" className="block font-medium text-[#275950]">
                   Dirección
                 </label>
                 <input
@@ -208,10 +197,7 @@ export default function AlojamientoForm() {
               </div>
 
               <div className="space-y-2">
-                <label
-                  htmlFor="costo"
-                  className="block font-medium text-[#275950]"
-                >
+                <label htmlFor="costo" className="block font-medium text-[#275950]">
                   Costo por mes (COP)
                 </label>
                 <input
@@ -227,10 +213,7 @@ export default function AlojamientoForm() {
               </div>
 
               <div className="space-y-2">
-                <label
-                  htmlFor="descripcion"
-                  className="block font-medium text-[#275950]"
-                >
+                <label htmlFor="descripcion" className="block font-medium text-[#275950]">
                   Descripción
                 </label>
                 <textarea
@@ -244,13 +227,11 @@ export default function AlojamientoForm() {
                 />
               </div>
 
-              {error && (
-                <p className="text-red-500 text-center">{error}</p>
-              )}
+              {error && <p className="text-red-500 text-center">{error}</p>}
 
               <button
                 type="submit"
-                className="w-full bg-[#2A8C82] text-white py-2 px-4 rounded-md hover:bg-[#275950] focus:outline-none focus:ring-2 focus:ring-[#41BFB3] focus:ring-offset-2 transition-colors"
+                className="w-full bg-[#2A8C82] text-white py-2 px-4 rounded-md hover:bg-[#275950] focus:outline-none focus:ring-2 focus:ring-[#41BFB3] transition-colors"
               >
                 Continuar
               </button>
