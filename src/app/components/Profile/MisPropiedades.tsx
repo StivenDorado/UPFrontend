@@ -4,12 +4,71 @@ import { Eye, Pencil, Trash2, Home, PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "../../../context/AuthContext";
 import { useRouter } from "next/navigation";
-import { getStorage, ref, deleteObject } from "firebase/storage";
+import { getStorage, ref, deleteObject, getDownloadURL } from "firebase/storage";
 import { app } from "../../../../firebase";
 
-// Tipos de datos para la propiedad
+// Componente mejorado para mostrar imágenes desde Firebase Storage
+const FirebaseImage = ({ path, alt = "", className = "" }: {
+  path: string;
+  alt?: string;
+  className?: string
+}) => {
+  const [url, setUrl] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const storage = getStorage(app);
+
+  useEffect(() => {
+    const fetchImage = async () => {
+      try {
+        if (!path) {
+          throw new Error("No se proporcionó path de la imagen");
+        }
+
+        const imageRef = ref(storage, path);
+        const downloadUrl = await getDownloadURL(imageRef);
+        setUrl(downloadUrl);
+        setError(null);
+      } catch (err) {
+        console.error("Error al cargar imagen:", err);
+        setError("No se pudo cargar la imagen");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchImage();
+  }, [path, storage]);
+
+  if (loading) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-gray-100">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-teal-500"></div>
+      </div>
+    );
+  }
+
+  if (error || !url) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-500">
+        <span>Imagen no disponible</span>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={url}
+      alt={alt}
+      className={className}
+      onError={() => setError("Error al cargar la imagen")}
+    />
+  );
+};
+
 type PropiedadImagen = {
-  url: string; // Aquí debe guardarse el path, por ejemplo "photos/1645734567890-image.jpg"
+  path: string; // Ruta completa en Firebase Storage
+  url?: string;  // URL opcional (no necesaria si usamos FirebaseImage)
   orden?: number;
 };
 
@@ -26,21 +85,18 @@ type Propiedad = {
   imagenes?: PropiedadImagen[];
 };
 
-// Función para formatear el precio
 const formatPrecio = (precio: number | string | undefined): string => {
-  const p = Number(precio);
-  if (isNaN(p)) return "N/A";
-  return `$${p.toLocaleString()}`;
+  if (!precio) return "$0";
+  const p = typeof precio === "string" ? parseFloat(precio) : precio;
+  return `$${p.toLocaleString("es-CO")}`;
 };
 
-const MisPropiedades: React.FC = () => {
+const MisPropiedades = () => {
   const { user } = useAuth();
   const router = useRouter();
   const [propiedades, setPropiedades] = useState<Propiedad[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  const storage = getStorage(app);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user?.uid) {
@@ -50,19 +106,14 @@ const MisPropiedades: React.FC = () => {
 
     const fetchPropiedades = async () => {
       try {
-        const response = await fetch(`http://localhost:4000/api/propiedades/arrendador/${user.uid}`);
-        if (!response.ok) {
-          const errorData = await response.json();
-          setError(errorData.error || "Error al obtener las propiedades");
-          setLoading(false);
-          return;
-        }
-        const data = await response.json();
+        const res = await fetch(`http://localhost:4000/api/propiedades/arrendador/${user.uid}`);
+        if (!res.ok) throw new Error(await res.text());
+        const data = await res.json();
         setPropiedades(data);
-        setLoading(false);
       } catch (err) {
-        console.error("Error en la petición:", err);
-        setError("Error en la petición");
+        console.error("Error al obtener propiedades:", err);
+        setError("Error al cargar propiedades");
+      } finally {
         setLoading(false);
       }
     };
@@ -70,271 +121,181 @@ const MisPropiedades: React.FC = () => {
     fetchPropiedades();
   }, [user]);
 
-  // Función para eliminar las imágenes de Firebase Storage y luego la propiedad en el backend
-  const handleDeleteProperty = async (propiedadId: number) => {
+  const handleDeleteProperty = async (id: number) => {
+    if (!window.confirm("¿Estás seguro de eliminar esta propiedad?")) return;
     if (!user?.uid) {
-      setError("No se encontró el UID del arrendador. Inicia sesión primero.");
-      return;
-    }
-
-    // Busca la propiedad a eliminar para obtener sus imágenes
-    const propiedadAEliminar = propiedades.find((p) => p.id === propiedadId);
-    if (!propiedadAEliminar) {
-      setError("Propiedad no encontrada");
+      setError("Usuario no autenticado");
       return;
     }
 
     try {
-      // Eliminar cada imagen de Firebase Storage
-      if (propiedadAEliminar.imagenes && propiedadAEliminar.imagenes.length > 0) {
-        for (const img of propiedadAEliminar.imagenes) {
-          try {
-            // Crea la referencia con el path guardado en la base de datos
-            const imageRef = ref(storage, img.url);
-            await deleteObject(imageRef);
-            console.log(`Imagen eliminada: ${img.url}`);
-          } catch (error) {
-            console.error("Error al eliminar imagen de Firebase:", img.url, error);
-            // Decide si continúas o abortas la eliminación según tu lógica
-          }
-        }
+      // Eliminar imágenes de Firebase primero
+      const propiedad = propiedades.find(p => p.id === id);
+      if (propiedad?.imagenes) {
+        const storage = getStorage(app);
+        await Promise.all(
+          propiedad.imagenes.map(async (img) => {
+            try {
+              const imageRef = ref(storage, img.path);
+              await deleteObject(imageRef);
+            } catch (err) {
+              console.error("Error al eliminar imagen:", img.path, err);
+            }
+          })
+        );
       }
 
-      // Luego, envía la petición DELETE al backend
-      const response = await fetch(`http://localhost:4000/api/propiedades/${propiedadId}`, {
+      // Eliminar propiedad del backend
+      const res = await fetch(`http://localhost:4000/api/propiedades/${id}`, {
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ arrendador_uid: user.uid }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ arrendador_uid: user.uid })
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        setError(errorData.error || "Error al eliminar la propiedad");
-        return;
-      }
+      if (!res.ok) throw new Error(await res.text());
 
-      // Si se elimina correctamente, actualizar el estado local
-      setPropiedades((prev) => prev.filter((p) => p.id !== propiedadId));
-      alert("Propiedad eliminada con éxito.");
+      // Actualizar estado local
+      setPropiedades(prev => prev.filter(p => p.id !== id));
     } catch (err) {
-      console.error("Error al eliminar la propiedad:", err);
-      setError("Error al eliminar la propiedad");
+      console.error("Error al eliminar propiedad:", err);
+      setError("Error al eliminar propiedad");
     }
   };
 
-  if (loading) return <p>Cargando propiedades...</p>;
-  if (error) return <p>Error: {error}</p>;
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-600"></div>
+    </div>
+  );
 
-  // Si no hay propiedades publicadas, muestra un mensaje y un botón para crear una propiedad
-  if (propiedades.length === 0)
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <div className="bg-gray-50 p-6 rounded-lg shadow-lg text-center">
-          <h2 className="text-2xl font-bold text-teal-600 mb-3">No tienes propiedades publicadas</h2>
-          <p className="text-gray-700 mb-4">
-            Crea tu primera propiedad para empezar a recibir reservas.
-          </p>
-          <Link
-            href="/alojamiento"
-            className="bg-teal-500 hover:bg-teal-400 text-white px-4 py-2 rounded-md flex items-center justify-center"
-          >
-            <PlusCircle size={18} className="mr-2" />
-            Nueva propiedad
-          </Link>
-        </div>
+  if (error) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="bg-white p-6 rounded-lg shadow-md text-center">
+        <p className="text-red-500 mb-4">{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700"
+        >
+          Reintentar
+        </button>
       </div>
-    );
+    </div>
+  );
+
+  if (propiedades.length === 0) return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+      <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-md">
+        <h2 className="text-2xl font-bold text-teal-600 mb-4">No tienes propiedades</h2>
+        <p className="text-gray-600 mb-6">
+          Publica tu primera propiedad para empezar a recibir reservas
+        </p>
+        <Link
+          href="/alojamiento"
+          className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-md inline-flex items-center"
+        >
+          <PlusCircle className="mr-2" size={18} />
+          Crear propiedad
+        </Link>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-teal-600">
-      <div className="bg-gray-50 min-h-screen rounded-t-lg p-4">
-        {/* Encabezado */}
-        <div className="bg-teal-600 text-white p-4 rounded-lg mb-4 flex justify-between items-center">
-          <div className="flex items-center">
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-2xl font-bold text-teal-800 flex items-center">
             <Home className="mr-2" size={24} />
-            <h2 className="text-xl font-bold uppercase">MIS PROPIEDADES</h2>
-          </div>
+            Mis Propiedades
+          </h1>
           <Link
             href="/alojamiento"
-            className="bg-teal-500 hover:bg-teal-400 text-white px-4 py-2 rounded-md flex items-center"
+            className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-md flex items-center"
           >
-            <PlusCircle size={18} className="mr-2" />
+            <PlusCircle className="mr-2" size={18} />
             Nueva propiedad
           </Link>
         </div>
 
         {/* Lista de propiedades */}
-        <div className="space-y-4">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {propiedades.map((propiedad) => (
-            <div
-              key={propiedad.id}
-              className="bg-white rounded-lg overflow-hidden shadow-sm"
-            >
-              <div className="flex">
-                {/* Sección de la imagen */}
-                <div className="relative w-1/3 bg-gray-200 flex items-center justify-center">
-                  {propiedad.imagenes && propiedad.imagenes.length > 0 ? (
-                    <div className="relative w-full h-40">
-                      <img
-                        src={propiedad.imagenes[0].url}
-                        alt={`Imagen de ${propiedad.titulo}`}
-                        className="object-cover w-full h-full"
-                      />
-                    </div>
-                  ) : (
-                    <div className="text-gray-400">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-                        <circle cx="9" cy="9" r="2" />
-                        <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-                      </svg>
-                    </div>
-                  )}
-                  <div
-                    className={`absolute top-2 left-2 text-xs font-bold py-1 px-3 rounded-full ${
-                      propiedad.estado === "activa"
-                        ? "bg-green-500 text-white"
-                        : "bg-gray-500 text-white"
-                    }`}
-                  >
-                    {propiedad.estado === "activa" ? "Activa" : "Inactiva"}
+            <div key={propiedad.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+              {/* Imagen */}
+              <div className="relative h-48 bg-gray-100">
+                {propiedad.imagenes && propiedad.imagenes.length > 0 ? (
+                  <FirebaseImage
+                    path={propiedad.imagenes[0].path}
+                    alt={propiedad.titulo}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    Sin imagen
                   </div>
+                )}
+                <div className={`absolute top-2 left-2 text-xs font-bold py-1 px-2 rounded-full ${propiedad.estado === "activa" ? "bg-green-500" : "bg-gray-500"
+                  } text-white`}>
+                  {propiedad.estado === "activa" ? "Activa" : "Inactiva"}
+                </div>
+              </div>
+
+              {/* Detalles */}
+              <div className="p-4">
+                <h3 className="font-bold text-lg text-teal-800 mb-1">{propiedad.titulo}</h3>
+                <p className="text-gray-600 text-sm mb-3">{propiedad.ubicacion}</p>
+
+                <div className="flex justify-between text-sm mb-3">
+                  <span className="flex items-center">
+                    <span className="mr-1">🛏️</span>
+                    {propiedad.habitaciones} hab.
+                  </span>
+                  <span className="flex items-center">
+                    <span className="mr-1">🚿</span>
+                    {propiedad.banos} baños
+                  </span>
+                  <span className="flex items-center">
+                    <span className="mr-1">👁️</span>
+                    {propiedad.visitas}
+                  </span>
+                  <span className="flex items-center">
+                    <span className="mr-1">📅</span>
+                    {propiedad.reservas}
+                  </span>
                 </div>
 
-                {/* Información de la propiedad */}
-                <div className="w-2/3 p-4">
-                  <h3 className="font-bold text-teal-700 text-lg mb-1">
-                    {propiedad.titulo}
-                  </h3>
-                  <p className="text-sm text-gray-600 flex items-center mb-2">
-                    {propiedad.ubicacion}
-                  </p>
-                  <div className="flex mb-2">
-                    <div className="flex items-center mr-4">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="mr-1"
-                      >
-                        <path d="M3 22v-2c0-1.1.9-2 2-2h2a2 2 0 0 1 2 2v2H3Z" />
-                        <path d="M15 22v-2c0-1.1.9-2 2-2h2a2 2 0 0 1 2 2v2h-6Z" />
-                        <path d="M9 22v-2c0-1.1.9-2 2-2h2a2 2 0 0 1 2 2v2H9Z" />
-                      </svg>
-                      {propiedad.habitaciones}
-                    </div>
-                    <div className="flex items-center">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="mr-1"
-                      >
-                        <path d="M8 2v2" />
-                        <path d="M16 2v2" />
-                        <path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7" />
-                        <path d="M3 10h18" />
-                        <path d="M16 19h6" />
-                        <path d="M19 16v6" />
-                      </svg>
-                      {propiedad.banos}
-                    </div>
-                  </div>
-                  <div className="flex mb-2">
-                    <div className="flex items-center mr-4">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="mr-1"
-                      >
-                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                        <circle cx="12" cy="12" r="3" />
-                      </svg>
-                      {propiedad.visitas} visitas
-                    </div>
-                    <div className="flex items-center">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="mr-1"
-                      >
-                        <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-                        <path d="M7 7h.01" />
-                        <path d="M17 7h.01" />
-                        <path d="M7 17h.01" />
-                        <path d="M17 17h.01" />
-                      </svg>
-                      {propiedad.reservas} reservas
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div className="text-teal-600 font-bold">
-                      {formatPrecio(propiedad.precio)}
-                    </div>
-                    <div className="flex space-x-2">
-                      <Link href={`/propiedadesPublicadas/${propiedad.id}`}>
-                        <button className="flex items-center justify-center w-8 h-8 text-teal-600 border border-teal-600 rounded-md hover:bg-teal-50">
-                          <Eye size={16} />
-                        </button>
-                      </Link>
-                      <button className="flex items-center justify-center w-8 h-8 text-orange-600 border border-orange-600 rounded-md hover:bg-orange-50">
-                        <Pencil size={16} />
-                      </button>
-                      {/* Botón para eliminar */}
-                      <button
-                        onClick={() => handleDeleteProperty(propiedad.id)}
-                        className="flex items-center justify-center w-8 h-8 text-red-600 border border-red-600 rounded-md hover:bg-red-50"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="mt-2">
-                    <button
-                      className={`w-full py-1 px-2 rounded-md text-sm ${
-                        propiedad.estado === "activa"
-                          ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                          : "bg-green-100 text-green-700 hover:bg-green-200"
-                      }`}
+                <div className="flex justify-between items-center mt-4">
+                  <span className="font-bold text-teal-600">
+                    {formatPrecio(propiedad.precio)}
+                  </span>
+                  <div className="flex space-x-2">
+                    <Link
+                      href={`/propiedadesPublicadas/${propiedad.id}`}
+                      className="p-2 text-teal-600 hover:bg-teal-50 rounded"
                     >
-                      {propiedad.estado === "activa" ? "Desactivar" : "Activar"}
+                      <Eye size={18} />
+                    </Link>
+                    <button className="p-2 text-blue-600 hover:bg-blue-50 rounded">
+                      <Pencil size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteProperty(propiedad.id)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded"
+                    >
+                      <Trash2 size={18} />
                     </button>
                   </div>
                 </div>
+
+                <button
+                  className={`w-full mt-3 py-1 text-sm rounded ${propiedad.estado === "activa"
+                      ? "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                      : "bg-green-100 text-green-800 hover:bg-green-200"
+                    }`}
+                >
+                  {propiedad.estado === "activa" ? "Desactivar" : "Activar"}
+                </button>
               </div>
             </div>
           ))}

@@ -5,6 +5,27 @@ import Image from "next/image";
 import { useAuth } from "../../../context/AuthContext";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { app } from "../../../../firebase";
+import {
+  Wifi,
+  Flame,
+  Tv,
+  UtensilsCrossed,
+  Droplet,
+  Car,
+  Waves,
+  Refrigerator,
+  Sofa,
+  Ban,
+  Dog,
+  TreePine,
+  Mountain,
+  Home,
+  Building,
+  Bed,
+  Bath,
+  Users,
+  ParkingCircle
+} from "lucide-react";
 
 interface PropiedadImagen {
   id: number;
@@ -16,8 +37,24 @@ interface CaracteristicaPropiedad {
   id: number;
   tipo_vivienda: string;
   wifi: boolean;
+  energia: boolean;
+  tv: boolean;
+  cocina: boolean;
+  agua: boolean;
+  garaje: boolean;
+  lavadora: boolean;
+  nevera: boolean;
+  gas: boolean;
   habitaciones: number;
-  banos: number;
+  banos: number;  // Asegúrate que coincida con el backend (baños vs banos)
+  capacidad: number;
+  estacionamientos: number;
+  jardin: boolean;
+  piscina: boolean;
+  vista_montaña: boolean;
+  terraza: boolean;
+  amoblado: boolean;
+  acepta_mascotas: boolean;
 }
 
 interface Propiedad {
@@ -224,9 +261,8 @@ export default function PublicacionPage() {
                       {propiedad.imagenes.map((_, index) => (
                         <span
                           key={index}
-                          className={`w-2.5 h-2.5 rounded-full ${
-                            index === currentImageIndex ? "bg-[#2A8C82]" : "bg-white/70"
-                          }`}
+                          className={`w-2.5 h-2.5 rounded-full ${index === currentImageIndex ? "bg-[#2A8C82]" : "bg-white/70"
+                            }`}
                           onClick={() => setCurrentImageIndex(index)}
                         />
                       ))}
@@ -291,106 +327,174 @@ export default function PublicacionPage() {
             </div>
 
             {/* Characteristics Card */}
+            {/* Characteristics Card */}
             <div className="bg-white p-8 rounded-2xl shadow-sm">
               <h2 className="text-2xl font-semibold text-[#275950] mb-5 pb-2 border-b border-[#9BF2EA]">
                 Características
               </h2>
-              <div className="grid grid-cols-2 md:grid-cols-2 gap-8">
+
+              {/* Primera fila - Características principales */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                {/* Tipo de vivienda */}
                 <div className="flex items-center gap-3">
                   <div className="bg-[#9BF2EA]/30 p-3 rounded-full">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="#2A8C82"
-                      className="w-6 h-6"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9l4.5-1.636M18.75 3l-1.5.545m0 6.205l3 1m1.5.5l-1.5-.5M6.75 7.364V3h-3v18m3-13.636l10.5-3.819"
-                      />
-                    </svg>
+                    <Building className="w-5 h-5 text-[#2A8C82]" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-600">Tipo de propiedad</p>
-                    <p className="text-lg font-semibold">
-                      {propiedad.caracteristicas[0]?.tipo_vivienda || "N/A"}
-                    </p>
+                    <p className="text-sm text-gray-600">Tipo</p>
+                    <p className="font-medium">{propiedad.caracteristicas[0]?.tipo_vivienda || "N/A"}</p>
                   </div>
                 </div>
+
+                {/* Habitaciones */}
                 <div className="flex items-center gap-3">
                   <div className="bg-[#9BF2EA]/30 p-3 rounded-full">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="#2A8C82"
-                      className="w-6 h-6"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
-                      />
-                    </svg>
+                    <Bed className="w-5 h-5 text-[#2A8C82]" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-600">Habitaciones</p>
-                    <p className="text-lg font-semibold">
-                      {propiedad.caracteristicas[0]?.habitaciones || 0}
-                    </p>
+                    <p className="text-sm text-gray-600">Habitaciones</p>
+                    <p className="font-medium">{propiedad.caracteristicas[0]?.habitaciones || 0}</p>
                   </div>
                 </div>
+
+                {/* Baños */}
                 <div className="flex items-center gap-3">
                   <div className="bg-[#9BF2EA]/30 p-3 rounded-full">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="#2A8C82"
-                      className="w-6 h-6"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"
-                      />
-                    </svg>
+                    <Bath className="w-5 h-5 text-[#2A8C82]" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-600">Baños</p>
-                    <p className="text-lg font-semibold">
-                      {propiedad.caracteristicas[0]?.banos || 0}
-                    </p>
+                    <p className="text-sm text-gray-600">Baños</p>
+                    <p className="font-medium">{propiedad.caracteristicas[0]?.banos || 0}</p>
                   </div>
                 </div>
+
+                {/* Capacidad */}
                 <div className="flex items-center gap-3">
                   <div className="bg-[#9BF2EA]/30 p-3 rounded-full">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="#2A8C82"
-                      className="w-6 h-6"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z"
-                      />
-                    </svg>
+                    <Users className="w-5 h-5 text-[#2A8C82]" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-600">Wifi</p>
-                    <p className="text-lg font-semibold">
-                      {propiedad.caracteristicas[0]?.wifi ? "Incluido" : "No disponible"}
-                    </p>
+                    <p className="text-sm text-gray-600">Capacidad</p>
+                    <p className="font-medium">{propiedad.caracteristicas[0]?.capacidad || 0}</p>
                   </div>
+                </div>
+              </div>
+
+              {/* Segunda fila - Servicios básicos */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-[#275950] mb-3">Servicios</h3>
+                <div className="flex flex-wrap gap-3">
+                  {propiedad.caracteristicas[0]?.wifi && (
+                    <div className="flex items-center gap-2 bg-[#9BF2EA]/10 px-3 py-2 rounded-full">
+                      <Wifi className="w-4 h-4 text-[#2A8C82]" />
+                      <span className="text-sm">Wifi</span>
+                    </div>
+                  )}
+                  {propiedad.caracteristicas[0]?.energia && (
+                    <div className="flex items-center gap-2 bg-[#9BF2EA]/10 px-3 py-2 rounded-full">
+                      <Flame className="w-4 h-4 text-[#2A8C82]" />
+                      <span className="text-sm">Energía</span>
+                    </div>
+                  )}
+                  {/* Repite para los demás servicios */}
+                  {propiedad.caracteristicas[0]?.tv && (
+                    <div className="flex items-center gap-2 bg-[#9BF2EA]/10 px-3 py-2 rounded-full">
+                      <Tv className="w-4 h-4 text-[#2A8C82]" />
+                      <span className="text-sm">TV</span>
+                    </div>
+                  )}
+                  {propiedad.caracteristicas[0]?.cocina && (
+                    <div className="flex items-center gap-2 bg-[#9BF2EA]/10 px-3 py-2 rounded-full">
+                      <UtensilsCrossed className="w-4 h-4 text-[#2A8C82]" />
+                      <span className="text-sm">Cocina</span>
+                    </div>
+                  )}
+                  {propiedad.caracteristicas[0]?.agua && (
+                    <div className="flex items-center gap-2 bg-[#9BF2EA]/10 px-3 py-2 rounded-full">
+                      <Droplet className="w-4 h-4 text-[#2A8C82]" />
+                      <span className="text-sm">Agua</span>
+                    </div>
+                  )}
+                  {propiedad.caracteristicas[0]?.garaje && (
+                    <div className="flex items-center gap-2 bg-[#9BF2EA]/10 px-3 py-2 rounded-full">
+                      <Car className="w-4 h-4 text-[#2A8C82]" />
+                      <span className="text-sm">Garaje</span>
+                    </div>
+                  )}
+                  {propiedad.caracteristicas[0]?.lavadora && (
+                    <div className="flex items-center gap-2 bg-[#9BF2EA]/10 px-3 py-2 rounded-full">
+                      <Waves className="w-4 h-4 text-[#2A8C82]" />
+                      <span className="text-sm">Lavadora</span>
+                    </div>
+                  )}
+                  {propiedad.caracteristicas[0]?.nevera && (
+                    <div className="flex items-center gap-2 bg-[#9BF2EA]/10 px-3 py-2 rounded-full">
+                      <Refrigerator className="w-4 h-4 text-[#2A8C82]" />
+                      <span className="text-sm">Nevera</span>
+                    </div>
+                  )}
+                  {propiedad.caracteristicas[0]?.gas && (
+                    <div className="flex items-center gap-2 bg-[#9BF2EA]/10 px-3 py-2 rounded-full">
+                      <Flame className="w-4 h-4 text-[#2A8C82]" />
+                      <span className="text-sm">Gas</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Tercera fila - Otras características */}
+              <div>
+                <h3 className="text-lg font-semibold text-[#275950] mb-3">Otras características</h3>
+                <div className="flex flex-wrap gap-3">
+                  {/* Estado del inmueble */}
+                  <div className="flex items-center gap-2 bg-[#9BF2EA]/10 px-3 py-2 rounded-full">
+                    {propiedad.caracteristicas[0]?.amoblado ? (
+                      <Sofa className="w-4 h-4 text-[#2A8C82]" />
+                    ) : (
+                      <Ban className="w-4 h-4 text-[#2A8C82]" />
+                    )}
+                    <span className="text-sm">
+                      {propiedad.caracteristicas[0]?.amoblado ? "Amoblado" : "Sin amoblar"}
+                    </span>
+                  </div>
+
+                  {/* Política de mascotas */}
+                  <div className="flex items-center gap-2 bg-[#9BF2EA]/10 px-3 py-2 rounded-full">
+                    {propiedad.caracteristicas[0]?.acepta_mascotas ? (
+                      <Dog className="w-4 h-4 text-[#2A8C82]" />
+                    ) : (
+                      <Ban className="w-4 h-4 text-[#2A8C82]" />
+                    )}
+                    <span className="text-sm">
+                      {propiedad.caracteristicas[0]?.acepta_mascotas ? "Acepta mascotas" : "No mascotas"}
+                    </span>
+                  </div>
+
+                  {/* Características exteriores */}
+                  {propiedad.caracteristicas[0]?.jardin && (
+                    <div className="flex items-center gap-2 bg-[#9BF2EA]/10 px-3 py-2 rounded-full">
+                      <TreePine className="w-4 h-4 text-[#2A8C82]" />
+                      <span className="text-sm">Jardín</span>
+                    </div>
+                  )}
+                  {propiedad.caracteristicas[0]?.piscina && (
+                    <div className="flex items-center gap-2 bg-[#9BF2EA]/10 px-3 py-2 rounded-full">
+                      <Droplet className="w-4 h-4 text-[#2A8C82]" />
+                      <span className="text-sm">Piscina</span>
+                    </div>
+                  )}
+                  {propiedad.caracteristicas[0]?.vista_montaña && (
+                    <div className="flex items-center gap-2 bg-[#9BF2EA]/10 px-3 py-2 rounded-full">
+                      <Mountain className="w-4 h-4 text-[#2A8C82]" />
+                      <span className="text-sm">Vista montaña</span>
+                    </div>
+                  )}
+                  {propiedad.caracteristicas[0]?.terraza && (
+                    <div className="flex items-center gap-2 bg-[#9BF2EA]/10 px-3 py-2 rounded-full">
+                      <Home className="w-4 h-4 text-[#2A8C82]" />
+                      <span className="text-sm">Terraza</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

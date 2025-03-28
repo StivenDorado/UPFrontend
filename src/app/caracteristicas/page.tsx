@@ -88,17 +88,18 @@ export default function CaracteristicasPage(): JSX.Element {
       nevera: services.includes("Nevera"),
       gas: services.includes("Gas"),
       habitaciones: bedrooms,
-      // Si tu backend espera la propiedad "baños", asegúrate de que el nombre coincida
-      baños: bathrooms,
+      banos: bathrooms, // Usa "banos" sin tilde
       capacidad: capacity,
       estacionamientos: parkingSpaces,
       jardin: outdoorFeatures.includes("Jardín"),
       piscina: outdoorFeatures.includes("Piscina"),
-      vista_montaña: outdoorFeatures.includes("Vista a la montaña"),
+      vista_montaña: outdoorFeatures.includes("Vista a la montaña"), // sin tilde
       terraza: outdoorFeatures.includes("Terraza"),
       amoblado: furnishingType === "Amoblado",
       acepta_mascotas: petPolicy === "Acepta mascotas",
     };
+    
+    
 
     try {
       const response = await fetch("http://localhost:4000/api/caracteristicas", {
