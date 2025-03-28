@@ -65,7 +65,38 @@ export function AuthProvider({ children }) {
           const esArrendador = await verificarArrendador(token, firebaseUser.uid);
           console.log("Resultado verificación arrendador en AuthContext:", esArrendador);
           
-          // Actualizar el usuario con la propiedad arrendador
+          // Si no es arrendador, registrar al usuario en el modelo Usuario
+          if (!esArrendador) {
+            console.log("Usuario no es arrendador, se procede a registrar en el modelo Usuario");
+            const usuarioData = {
+              uid: firebaseUser.uid,
+              nombres_apellidos: firebaseUser.displayName || "Nombre no proporcionado",
+              email: firebaseUser.email,
+              fotoPerfil: firebaseUser.photoURL || null,
+            };
+            console.log("Datos a enviar:", usuarioData);
+          
+            const res = await fetch("http://localhost:4000/api/usuario", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify(usuarioData)
+            });
+          
+            console.log("Respuesta del registro:", res);
+          
+            if (!res.ok) {
+              const errData = await res.json();
+              console.error("Error registrando el usuario en la BD", errData);
+            } else {
+              console.log("Usuario registrado exitosamente en la BD");
+            }
+          }
+          
+  
+          // Actualizar el estado del usuario con la propiedad arrendador
           setUser({ 
             ...firebaseUser, 
             loggedIn: true, 
