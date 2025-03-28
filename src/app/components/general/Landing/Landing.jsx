@@ -1,62 +1,95 @@
+"use client";
+import React, { useEffect, useState } from "react";
 import Footer from "../../components/footer/Footer";
-import Link from "next/link"; // Elimina react-router-dom
+import AccommodationCard from "../../components/cards/AccommodationCard";
 
 export default function Landing() {
+  const [propiedades, setPropiedades] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPropiedades = async () => {
+      try {
+        const response = await fetch("http://localhost:4000/api/alojamientos");
+        
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Datos recibidos:", data); // Depuración
+        
+        // Verifica si la respuesta es un array
+        if (!Array.isArray(data)) {
+          throw new Error("La respuesta no es un array de propiedades");
+        }
+
+        setPropiedades(data);
+      } catch (err) {
+        console.error("Error al cargar propiedades:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPropiedades();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p>Cargando propiedades...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-red-500">Error: {error}</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-white"> {/* Fondo blanco para toda la página */}
+    <div className="bg-white min-h-screen">
+      {/* Sección de banners (opcional) */}
       <section className="p-4 grid grid-cols-3 gap-4">
         <div className="bg-gray-300 h-24 rounded-md" />
         <div className="bg-gray-300 h-24 rounded-md" />
         <div className="bg-gray-300 h-24 rounded-md" />
       </section>
 
-      <section className="grid grid-cols-4 gap-20 p-24 bg-white"> {/* Cambiado a bg-white */}
-        {Array.from({ length: 16 }).map((_, index) => (
-          <Link href="/reserva" key={index}> {/* Corregido `to` por `href` */}
-            <div className="flex flex-col items-center justify-center">
-              <div className="bg-white relative w-60 h-56 rounded-t-lg">
-                <button className="bg-transparent absolute top-1 right-2 rounded-lg px-1 py-1">
-                  <svg
-                    className="h-5 w-5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="text-black flex flex-col items-center bg-gray-300 w-60 h-28 rounded-b-lg">
-                <div className="flex items-center justify-center space-x-1 px-4 py-1">
-                  <h3 className="text-lg font-semibold">San Eduardo</h3>
-                  <span>0.0</span>
-                  <svg
-                    className="h-4 w-4"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                  </svg>
-                </div>
-                <p className="text-xs text-gray-500 text-center">
-                  Disponible desde 11-20 sep
-                </p>
-                <p className="text-lg font-bold text-center">
-                  $ 250,000.00 COP / Mes
-                </p>
-              </div>
-            </div>
-          </Link>
-        ))}
+      {/* Listado de propiedades */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
+        {propiedades.length > 0 ? (
+          propiedades.map((propiedad) => (
+            <AccommodationCard
+              key={propiedad.id}
+              id={propiedad.id}
+              apartmentData={{
+                name: propiedad.titulo || "Sin título",
+                distance: "5 km", // Puedes calcularlo con geolocalización
+                dates: "Disponible", // Puedes usar propiedad.fechasDisponibles
+                price: propiedad.precio || "Consultar",
+                imageUrl: propiedad.imagenes?.[0]?.url || "/default-image.jpg",
+                features: [
+                  propiedad.caracteristicas?.tipo_vivienda || "Casa",
+                  `${propiedad.caracteristicas?.habitaciones || 1} hab.`,
+                  `${propiedad.caracteristicas?.banos || 1} baños`,
+                ].filter(Boolean),
+              }}
+            />
+          ))
+        ) : (
+          <div className="col-span-full text-center py-10">
+            <p>No hay propiedades disponibles.</p>
+          </div>
+        )}
       </section>
+
       <Footer />
     </div>
   );
