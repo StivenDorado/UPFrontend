@@ -461,7 +461,7 @@ export default function PublicacionPage() {
                     <span className="text-sm">
                       {propiedad.caracteristicas[0]?.acepta_mascotas ? "Acepta mascotas" : "No mascotas"}
                     </span>
-                  </div>
+                  </div> Ubicacion
                   {propiedad.caracteristicas[0]?.jardin && (
                     <div className="flex items-center gap-2 bg-[#9BF2EA]/10 px-3 py-2 rounded-full">
                       <TreePine className="w-4 h-4 text-[#2A8C82]" />

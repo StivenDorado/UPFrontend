@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+"use client";
+import { useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -32,10 +33,11 @@ export default function MapEstatic({ position }: MapaEstaticProps) {
       center={position}
       zoom={13}
       style={{ height: '400px', width: '100%', borderRadius: '0.5rem' }}
-      scrollWheelZoom={false}
-      dragging={false}
-      doubleClickZoom={false}
-      zoomControl={false}
+      scrollWheelZoom={true}  // Habilitar zoom con rueda del mouse
+      dragging={true}         // Habilitar arrastrar el mapa
+      doubleClickZoom={true}  // Habilitar zoom con doble click
+      zoomControl={true}      // Mostrar controles de zoom
+      touchZoom={true}        // Habilitar zoom táctil
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
