@@ -1,9 +1,10 @@
 "use client"
 import { useEffect, useState } from "react"
-import { Eye, Pencil, Trash2, Home, PlusCircle, ImageIcon } from "lucide-react"
+import { Home, PlusCircle } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "../../../context/AuthContext"
 import { useRouter } from "next/navigation"
+import PropertyCard, { Propiedad } from "../Profile/CardPropiedad" // Import the new component
 
 // Import Firebase with error handling
 let firebaseStorage: any = null
@@ -21,104 +22,6 @@ try {
   // We'll handle the missing Firebase in the component
 }
 
-// Componente mejorado para mostrar imágenes desde Firebase Storage o fallback
-const PropertyImage = ({
-  path,
-  alt = "",
-  className = "",
-}: {
-  path?: string
-  alt?: string
-  className?: string
-}) => {
-  const [url, setUrl] = useState("")
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    const fetchImage = async () => {
-      try {
-        if (!path) {
-          throw new Error("No se proporcionó path de la imagen")
-        }
-
-        if (!firebaseStorage || !firebaseApp) {
-          throw new Error("Firebase no está disponible")
-        }
-
-        const storage = firebaseStorage.getStorage(firebaseApp)
-        const imageRef = firebaseStorage.ref(storage, path)
-        const downloadUrl = await firebaseStorage.getDownloadURL(imageRef)
-        setUrl(downloadUrl)
-        setError(null)
-      } catch (err) {
-        console.error("Error al cargar imagen:", err)
-        setError("No se pudo cargar la imagen")
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    if (path) {
-      fetchImage()
-    } else {
-      setLoading(false)
-      setError("No hay imagen")
-    }
-  }, [path])
-
-  if (loading) {
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-gray-100">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-teal-500"></div>
-      </div>
-    )
-  }
-
-  if (error || !url) {
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-500">
-        <ImageIcon className="h-10 w-10 opacity-30 mr-2" />
-        <span>Imagen no disponible</span>
-      </div>
-    )
-  }
-
-  return (
-    <img
-      src={url || "/placeholder.svg"}
-      alt={alt}
-      className={className}
-      onError={() => setError("Error al cargar la imagen")}
-    />
-  )
-}
-
-type PropiedadImagen = {
-  path: string // Ruta completa en Firebase Storage
-  url?: string // URL opcional (no necesaria si usamos FirebaseImage)
-  orden?: number
-}
-
-type Propiedad = {
-  id: number
-  titulo: string
-  ubicacion: string
-  habitaciones: number
-  banos: number
-  precio: number | string
-  visitas: number
-  reservas: number
-  estado: "activa" | "inactiva"
-  imagenes?: PropiedadImagen[]
-}
-
-const formatPrecio = (precio: number | string | undefined): string => {
-  if (!precio) return "$0"
-  const p = typeof precio === "string" ? Number.parseFloat(precio) : precio
-  return `$${p.toLocaleString("es-CO")}`
-}
-
 // Mock data for preview purposes
 const mockPropiedades: Propiedad[] = [
   {
@@ -131,7 +34,10 @@ const mockPropiedades: Propiedad[] = [
     visitas: 120,
     reservas: 5,
     estado: "activa",
-    imagenes: [{ path: "/images/property1.jpg" }],
+    imagenes: [{ 
+      path: "propiedades/1/foto-principal.jpg", // Ruta de Firebase
+      url: "" // Opcional: puedes agregar una URL directa aquí
+    }],
   },
   {
     id: 2,
@@ -143,7 +49,9 @@ const mockPropiedades: Propiedad[] = [
     visitas: 85,
     reservas: 3,
     estado: "activa",
-    imagenes: [{ path: "/images/property2.jpg" }],
+    imagenes: [{ 
+      path: "propiedades/2/foto-principal.jpg" 
+    }],
   },
   {
     id: 3,
@@ -242,6 +150,19 @@ const MisPropiedades = () => {
       setPropiedades((prev) => prev.filter((p) => p.id !== id))
     }
   }
+  
+  const handleToggleStatus = (id: number) => {
+    setPropiedades(prev => 
+      prev.map(p => 
+        p.id === id 
+          ? {...p, estado: p.estado === "activa" ? "inactiva" : "activa"} 
+          : p
+      )
+    )
+    
+    // Here you would also call your API to update the status
+    // if you have a backend implementation
+  }
 
   if (loading)
     return (
@@ -303,122 +224,12 @@ const MisPropiedades = () => {
         {/* Lista de propiedades */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {propiedades.map((propiedad) => (
-            <div
-              key={propiedad.id}
-              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
-            >
-              {/* Imagen mejorada - más grande y con mejor presentación */}
-              <div className="relative h-56 bg-gray-100">
-                {propiedad.imagenes && propiedad.imagenes.length > 0 ? (
-                  <PropertyImage
-                    path={propiedad.imagenes[0].path}
-                    alt={propiedad.titulo}
-                    className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    <Home size={48} className="opacity-30" />
-                    <span className="ml-2">Sin imagen</span>
-                  </div>
-                )}
-                <div
-                  className={`absolute top-3 left-3 text-xs font-bold py-1 px-3 rounded-full ${
-                    propiedad.estado === "activa" ? "bg-green-500" : "bg-gray-500"
-                  } text-white shadow-sm`}
-                >
-                  {propiedad.estado === "activa" ? "Activa" : "Inactiva"}
-                </div>
-                <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm py-1 px-3 rounded-full text-teal-600 font-bold shadow-sm">
-                  {formatPrecio(propiedad.precio)}
-                </div>
-              </div>
-
-              {/* Detalles */}
-              <div className="p-5">
-                <h3 className="font-bold text-lg text-teal-800 mb-1 line-clamp-1">{propiedad.titulo}</h3>
-                <p className="text-gray-600 text-sm mb-4 flex items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-1 text-gray-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                  {propiedad.ubicacion}
-                </p>
-
-                <div className="grid grid-cols-4 gap-2 text-sm mb-4 bg-gray-50 rounded-lg p-3">
-                  <div className="flex flex-col items-center justify-center">
-                    <span className="text-gray-500 mb-1">🛏️</span>
-                    <span className="font-medium">{propiedad.habitaciones}</span>
-                    <span className="text-xs text-gray-500">Hab.</span>
-                  </div>
-                  <div className="flex flex-col items-center justify-center">
-                    <span className="text-gray-500 mb-1">🚿</span>
-                    <span className="font-medium">{propiedad.banos}</span>
-                    <span className="text-xs text-gray-500">Baños</span>
-                  </div>
-                  <div className="flex flex-col items-center justify-center">
-                    <span className="text-gray-500 mb-1">👁️</span>
-                    <span className="font-medium">{propiedad.visitas}</span>
-                    <span className="text-xs text-gray-500">Visitas</span>
-                  </div>
-                  <div className="flex flex-col items-center justify-center">
-                    <span className="text-gray-500 mb-1">📅</span>
-                    <span className="font-medium">{propiedad.reservas}</span>
-                    <span className="text-xs text-gray-500">Reservas</span>
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center mt-4">
-                  <button
-                    className={`py-1.5 px-3 text-sm rounded-md ${
-                      propiedad.estado === "activa"
-                        ? "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                        : "bg-green-100 text-green-800 hover:bg-green-200"
-                    } transition-colors`}
-                  >
-                    {propiedad.estado === "activa" ? "Desactivar" : "Activar"}
-                  </button>
-
-                  <div className="flex space-x-1">
-                    <Link
-                      href={`/propiedadesPublicadas/${propiedad.id}`}
-                      className="p-2 text-teal-600 hover:bg-teal-50 rounded-full transition-colors"
-                      title="Ver propiedad"
-                    >
-                      <Eye size={18} />
-                    </Link>
-                    <button
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-                      title="Editar propiedad"
-                    >
-                      <Pencil size={18} />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteProperty(propiedad.id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
-                      title="Eliminar propiedad"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <PropertyCard 
+              key={propiedad.id} 
+              propiedad={propiedad} 
+              onDelete={handleDeleteProperty}
+              onToggleStatus={handleToggleStatus}
+            />
           ))}
         </div>
       </div>
@@ -427,4 +238,3 @@ const MisPropiedades = () => {
 }
 
 export default MisPropiedades
-
