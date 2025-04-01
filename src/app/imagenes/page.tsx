@@ -59,33 +59,35 @@ export default function PhotoUploader() {
       setError("Debes subir al menos una foto.");
       return;
     }
-
+  
     const payload = {
       propiedadId: Number(propiedadId),
       imagenes: photos.map((photo, index) => ({
         url: photo.url,
         path: photo.path,
-        orden: index
-      }))
+        orden: index,
+      })),
     };
-
+  
     try {
       const response = await fetch("http://localhost:4000/api/images", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
-
+  
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Error en el backend");
-
+  
       console.log("Imágenes guardadas en backend:", data);
-      router.push("/finalizar");
+      // Redirige usando el id obtenido en los parámetros (propiedadId)
+      router.push(`/finalizar/${propiedadId}`);
     } catch (err) {
       console.error("Error al guardar imágenes en el backend:", err);
       setError("Error al guardar imágenes.");
     }
   };
+  
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
