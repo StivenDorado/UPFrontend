@@ -23,24 +23,6 @@ interface ComponentProps {
 }
 
 // Componentes de ejemplo (en una aplicación real, estos estarían en archivos separados)
-const Servicios: React.FC<ComponentProps> = ({ title }) => (
-  <div className="bg-white p-6 rounded-lg shadow">
-    <h2 className="text-xl font-semibold mb-4 text-[#275950]">{title}</h2>
-    <p className="text-gray-700">Contenido del componente Servicios</p>
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-      {[1, 2, 3, 4, 5, 6].map((item) => (
-        <div key={item} className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
-          <h3 className="font-medium text-[#2A8C82]">Servicio {item}</h3>
-          <p className="text-sm text-gray-600 mt-2">Descripción breve del servicio {item}</p>
-          <button className="mt-3 text-sm text-[#41BFB3] hover:text-[#275950] flex items-center">
-            Ver detalles <ChevronRight size={14} className="ml-1" />
-          </button>
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
 const RevisarMatriculas: React.FC<ComponentProps> = ({ title }) => (
   <div className="bg-white p-6 rounded-lg shadow">
     <h2 className="text-xl font-semibold mb-4 text-[#275950]">{title}</h2>
@@ -79,38 +61,6 @@ const RevisarMatriculas: React.FC<ComponentProps> = ({ title }) => (
   </div>
 );
 
-// Componente para las noticias
-const Noticias: React.FC<ComponentProps> = ({ title }) => (
-  <div className="bg-white p-6 rounded-lg shadow">
-    <h2 className="text-xl font-semibold mb-4 text-[#275950]">{title}</h2>
-    <p className="text-gray-700 mb-4">Gestión de noticias y anuncios</p>
-    <div className="flex mb-4">
-      <button className="bg-[#2A8C82] text-white px-4 py-2 rounded hover:bg-[#275950] transition-colors mr-2">
-        Nueva noticia
-      </button>
-      <button className="border border-[#2A8C82] text-[#2A8C82] px-4 py-2 rounded hover:bg-[#91F2E9] transition-colors">
-        Ver archivo
-      </button>
-    </div>
-    {[1, 2, 3].map((item) => (
-      <div key={item} className="mb-4 p-4 border-l-4 border-[#41BFB3] bg-gray-50 rounded-r">
-        <div className="flex justify-between items-start">
-          <h3 className="font-medium text-[#2A8C82]">Título de la noticia {item}</h3>
-          <span className="text-xs text-gray-500">Publicada: 2025-03-{item}</span>
-        </div>
-        <p className="text-sm text-gray-600 mt-2">
-          Contenido resumido de la noticia {item}. Este es un ejemplo de texto para mostrar cómo se vería una noticia en el panel.
-        </p>
-        <div className="flex mt-3">
-          <button className="text-sm text-[#41BFB3] hover:text-[#275950] mr-3">Editar</button>
-          <button className="text-sm text-red-500 hover:text-red-700 mr-3">Eliminar</button>
-          <button className="text-sm text-gray-500 hover:text-gray-700">Despublicar</button>
-        </div>
-      </div>
-    ))}
-  </div>
-);
-
 // Componente para mostrar mensajes por defecto para las demás secciones
 const DefaultComponent: React.FC<ComponentProps> = ({ title }) => (
   <div className="bg-white p-6 rounded-lg shadow">
@@ -124,7 +74,7 @@ const DefaultComponent: React.FC<ComponentProps> = ({ title }) => (
 
 const AdminPanel: React.FC = () => {
   // Estado para rastrear el componente actual
-  const [currentComponent, setCurrentComponent] = useState<string>('servicios');
+  const [currentComponent, setCurrentComponent] = useState<string>('revisar-matriculas');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [showNotifications, setShowNotifications] = useState<boolean>(false);
 
@@ -136,12 +86,8 @@ const AdminPanel: React.FC = () => {
   // Función para renderizar el componente activo
   const renderComponent = () => {
     switch (currentComponent) {
-      case 'servicios':
-        return <Servicios title="Servicios" />;
       case 'revisar-matriculas':
         return <RevisarMatriculas title="Revisar Matrículas" />;
-      case 'noticias':
-        return <Noticias title="Noticias" />;
       // Para los demás componentes, usamos un componente por defecto
       default:
         return <DefaultComponent title={getComponentTitle()} />;
@@ -151,16 +97,10 @@ const AdminPanel: React.FC = () => {
   // Obtener el título para el breadcrumb
   const getComponentTitle = () => {
     switch (currentComponent) {
-      case 'servicios':
-        return 'Servicios';
       case 'revisar-matriculas':
         return 'Revisar Matrículas';
-      case 'noticias':
-        return 'Noticias';
       case 'verificacion-cuentas':
         return 'Verificación de Cuentas';
-      case 'contratos':
-        return 'Contratos';
       case 'resenas-de-alojamientos':
         return 'Reseñas de alojamientos';
       case 'gestion-de-publicaciones':
@@ -170,13 +110,13 @@ const AdminPanel: React.FC = () => {
       case 'equipo-de-administradores':
         return 'Equipo de administradores';
       default:
-        return 'Servicios';
+        return 'Revisar Matrículas';
     }
   };
 
-  // Cargar el componente de servicios por defecto
+  // Cargar el componente de revisar matrículas por defecto
   useEffect(() => {
-    loadComponent('servicios');
+    loadComponent('revisar-matriculas');
   }, []);
 
   return (
@@ -199,34 +139,16 @@ const AdminPanel: React.FC = () => {
           <div className="px-5 mb-2 text-xs text-[#91F2E9] uppercase font-semibold">Administración</div>
           
           <div 
-            className={`px-5 py-3 cursor-pointer flex items-center hover:bg-[#2A8C82] transition-colors ${currentComponent === 'servicios' ? 'bg-[#2A8C82] border-r-4 border-[#91F2E9]' : ''}`}
-            onClick={() => loadComponent('servicios')}
-          >
-            <FileText size={18} className="mr-3" /> Servicios
-          </div>
-          <div 
             className={`px-5 py-3 cursor-pointer flex items-center hover:bg-[#2A8C82] transition-colors ${currentComponent === 'revisar-matriculas' ? 'bg-[#2A8C82] border-r-4 border-[#91F2E9]' : ''}`}
             onClick={() => loadComponent('revisar-matriculas')}
           >
             <FileCheck size={18} className="mr-3" /> Revisar Matrículas
           </div>
           <div 
-            className={`px-5 py-3 cursor-pointer flex items-center hover:bg-[#2A8C82] transition-colors ${currentComponent === 'noticias' ? 'bg-[#2A8C82] border-r-4 border-[#91F2E9]' : ''}`}
-            onClick={() => loadComponent('noticias')}
-          >
-            <MessageSquare size={18} className="mr-3" /> Noticias
-          </div>
-          <div 
             className={`px-5 py-3 cursor-pointer flex items-center hover:bg-[#2A8C82] transition-colors ${currentComponent === 'verificacion-cuentas' ? 'bg-[#2A8C82] border-r-4 border-[#91F2E9]' : ''}`}
             onClick={() => loadComponent('verificacion-cuentas')}
           >
             <BookOpen size={18} className="mr-3" /> Verificación de Cuentas
-          </div>
-          <div 
-            className={`px-5 py-3 cursor-pointer flex items-center hover:bg-[#2A8C82] transition-colors ${currentComponent === 'contratos' ? 'bg-[#2A8C82] border-r-4 border-[#91F2E9]' : ''}`}
-            onClick={() => loadComponent('contratos')}
-          >
-            <File size={18} className="mr-3" /> Contratos
           </div>
           
           <div className="px-5 mt-4 mb-2 text-xs text-[#91F2E9] uppercase font-semibold">Revisiones</div>
@@ -335,4 +257,4 @@ const AdminPanel: React.FC = () => {
   );
 };
 
-export default AdminPanel;  
+export default AdminPanel;
