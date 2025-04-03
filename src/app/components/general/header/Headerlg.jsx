@@ -6,7 +6,7 @@ import Link from "next/link";
 import SearchBar from "../barSearch/searchBar";
 import FiltersMenu from "../filters/Menu";
 import DropdownModal from "../dropmodal/perfil";
-
+                                                                                                                                                                          
 const Header = () => {
   const [isFiltersMenuOpen, setIsFiltersMenuOpen] = useState(false);
 
