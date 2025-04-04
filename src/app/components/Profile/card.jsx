@@ -180,11 +180,17 @@ export default function AccommodationCard({ id }) {
           <button
             type="button"
             onClick={(e) => handleView(e, propiedad.id)}
-            className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 text-sm flex items-center justify-center gap-1"
+            className="flex-1 text-white px-3 py-2 rounded-md text-sm flex items-center justify-center gap-1 transition-colors"
+            style={{
+              backgroundColor: "#2A8C82",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#246f68")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#2A8C82")}
           >
             <Eye size={16} />
             Ver
           </button>
+
 
           <button
             type="button"
