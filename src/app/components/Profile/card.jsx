@@ -101,10 +101,11 @@ export default function AccommodationCard({ id }) {
     router.push(`/editar-propiedad/${id}`);
   };
 
-  const handleView = (e) => {
-    e.stopPropagation();
-    router.push(`/descripcionPropiedad/${id}`);
+  const handleView = (e, id) => {
+    e.stopPropagation(); // Para evitar que se propague si estás en un onClick de la tarjeta
+    router.push(`/propiedadesPublicadas/${id}`);
   };
+
 
   if (!visible) return null;
 
@@ -178,11 +179,13 @@ export default function AccommodationCard({ id }) {
         <div className="flex gap-2 mt-4">
           <button
             type="button"
-            onClick={handleView}
+            onClick={(e) => handleView(e, propiedad.id)}
             className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 text-sm flex items-center justify-center gap-1"
           >
+            <Eye size={16} />
             Ver
           </button>
+
           <button
             type="button"
             onClick={handleEdit}
