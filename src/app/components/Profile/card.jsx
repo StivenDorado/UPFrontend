@@ -147,15 +147,7 @@ export default function AccommodationCard({ id }) {
         <div className="absolute top-0 left-0 bg-black/50 text-white px-3 py-1 text-sm rounded-br-lg">
           {propiedad.estado ? "Activa" : "Inactiva"}
         </div>
-        <button
-          type="button"
-          className="absolute top-3 right-3 bg-white/90 p-2 rounded-full hover:bg-gray-100 shadow-sm"
-          onClick={toggleFavorite}
-        >
-          <Heart
-            className={`h-5 w-5 ${isFavorite ? "fill-red-500 text-red-500" : "text-gray-800"}`}
-          />
-        </button>
+        
       </div>
 
       <div className="p-4">
