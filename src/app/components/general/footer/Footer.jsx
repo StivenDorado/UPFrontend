@@ -11,7 +11,11 @@ export default function Footer() {
             <div className="w-full max-w-xs">             
               <h3 className="font-bold mb-6 text-lg">Asistencia</h3>             
               <ul className="space-y-4 text-base">               
-                <li><Link href="#" className="hover:underline">Centro de ayuda</Link></li>               
+              <Link href="/helpcenter">
+        <button className="px-4 py-3 text-left hover:bg-gray-100 transition-colors w-full">
+          Centro de ayuda
+        </button>
+      </Link>             
                 <li><Link href="#" className="hover:underline">SelfPoint</Link></li>               
                 <li><Link href="#" className="hover:underline">Antidiscriminación</Link></li>               
                 <li><Link href="#" className="hover:underline">Opciones de cancelación</Link></li>

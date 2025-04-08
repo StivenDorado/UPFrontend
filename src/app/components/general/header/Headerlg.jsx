@@ -7,7 +7,7 @@ import SearchBar from "../barSearch/searchBar";
 import FiltersMenu from "../filters/Menu";
 import DropdownModal from "../dropmodal/perfil";
 
-const Header = () => {
+const Header = ({ showSearchBar = true }) => {  // Prop por defecto true
   const [isFiltersMenuOpen, setIsFiltersMenuOpen] = useState(false);
 
   const handleFiltersClick = () => {
@@ -19,11 +19,11 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-[#2A8C82]"> {/* Fondo oscuro */}
+    <header className="bg-[#2A8C82]">
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/" className="text-[#eae6e5] font-bold text-xl"> {/* Texto claro */}
+          <Link href="/" className="text-[#eae6e5] font-bold text-xl">
             Logo UrbanPoint
           </Link>
 
@@ -31,8 +31,8 @@ const Header = () => {
           <DropdownModal isLoggedIn={false} />
         </div>
 
-        {/* Barra de búsqueda */}
-        <SearchBar onFiltersClick={handleFiltersClick} />
+        {/* Barra de búsqueda condicional */}
+        {showSearchBar && <SearchBar onFiltersClick={handleFiltersClick} />}
       </div>
 
       {/* Menú de filtros */}
