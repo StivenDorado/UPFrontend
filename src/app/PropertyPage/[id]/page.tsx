@@ -169,7 +169,11 @@ export default function PropertyPage() {
 
       {/* Modales */}
       <PriceOfferModal isOpen={modals.offer} onClose={() => setModals((prev) => ({ ...prev, offer: false }))} />
-      <ReservationModal isOpen={modals.reservation} onClose={() => setModals((prev) => ({ ...prev, reservation: false }))} />
+      <ReservationModal 
+        isOpen={modals.reservation} 
+        onClose={() => setModals((prev) => ({ ...prev, reservation: false }))} 
+        propertyId={id} // Pasamos el ID de la propiedad
+      />
       <AppointmentModal isOpen={modals.appointment} onClose={() => setModals((prev) => ({ ...prev, appointment: false }))} />
     </div>
   );

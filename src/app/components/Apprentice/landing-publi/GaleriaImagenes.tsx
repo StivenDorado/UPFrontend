@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
 interface GaleriaImagenesProps {
-  imagenes?: any[]; // Ahora acepta un array de imágenes directamente
-  propiedadId?: string; // Hacemos este prop opcional
+  imagenes?: any[]; // Acepta un array de URLs o de objetos con url
+  propiedadId?: string; // ID opcional para cargar imágenes por API
 }
 
 interface Imagen {
@@ -18,30 +18,27 @@ export default function GaleriaImagenes({ imagenes: imagenesProps, propiedadId }
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Si recibimos las imágenes directamente como prop, las usamos
+    // 1. Si recibimos imágenes directamente como prop
     if (imagenesProps && Array.isArray(imagenesProps) && imagenesProps.length > 0) {
       console.log("Usando imágenes proporcionadas directamente:", imagenesProps);
       
-      // Procesar las imágenes según su formato
       let urls: string[] = [];
-      
       if (typeof imagenesProps[0] === 'string') {
-        // Si son strings (URLs directas)
+        // Si el array son strings (URLs directas)
         urls = imagenesProps as string[];
       } else {
-        // Si son objetos con una propiedad url
+        // Si el array son objetos con 'url'
         urls = imagenesProps
           .filter((img: any) => img && img.url)
           .sort((a: any, b: any) => (a.orden || 0) - (b.orden || 0))
           .map((img: any) => img.url);
       }
-      
       setImagenesUrls(urls);
       setLoading(false);
       return;
     }
     
-    // Si no tenemos imágenes directas pero tenemos propiedadId, las buscamos por API
+    // 2. Si no tenemos imágenes directas pero tenemos propiedadId, las cargamos vía API
     if (propiedadId) {
       const fetchImagenes = async () => {
         try {
@@ -49,7 +46,6 @@ export default function GaleriaImagenes({ imagenes: imagenesProps, propiedadId }
           console.log(`Obteniendo imágenes para propiedad: ${propiedadId}`);
           
           const response = await fetch(`http://localhost:4000/api/images/${propiedadId}`);
-          
           if (!response.ok) {
             throw new Error(`Error ${response.status}: No se pudieron cargar las imágenes`);
           }
@@ -58,14 +54,10 @@ export default function GaleriaImagenes({ imagenes: imagenesProps, propiedadId }
           console.log("Datos recibidos de API:", data);
           
           if (data && data.imagenes && Array.isArray(data.imagenes)) {
-            // Ordenar imágenes por el campo 'orden' si existe
             const imagenesOrdenadas = [...data.imagenes].sort((a: Imagen, b: Imagen) => 
               (a.orden || 0) - (b.orden || 0)
             );
-            
-            // Extraer solo las URLs de las imágenes
             const urls = imagenesOrdenadas.map((img: Imagen) => img.url);
-            console.log("URLs procesadas:", urls);
             setImagenesUrls(urls);
           } else {
             console.error("Formato de datos inesperado", data);
@@ -78,16 +70,15 @@ export default function GaleriaImagenes({ imagenes: imagenesProps, propiedadId }
           setLoading(false);
         }
       };
-
       fetchImagenes();
     } else {
-      // Si no tenemos ni imágenes ni propiedadId, es un error
+      // 3. Si no hay ni imágenes ni ID
       setError("No se proporcionaron imágenes ni ID de propiedad");
       setLoading(false);
     }
   }, [propiedadId, imagenesProps]);
 
-  // Mensaje de carga
+  // 4. Loading
   if (loading) {
     return (
       <div className="grid grid-cols-2 gap-4 mb-6">
@@ -100,17 +91,17 @@ export default function GaleriaImagenes({ imagenes: imagenesProps, propiedadId }
     );
   }
 
-  // Mensaje de error
+  // 5. Error
   if (error) {
     return (
       <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 mb-6">
         <p>Error: {error}</p>
-        <p className="text-sm mt-1">Verifica las imágenes proporcionadas o la conexión con la API.</p>
+        <p className="text-sm mt-1">Verifica las imágenes o la conexión con la API.</p>
       </div>
     );
   }
 
-  // Si no hay imágenes
+  // 6. Sin imágenes
   if (imagenesUrls.length === 0) {
     return (
       <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-gray-600 mb-6">
@@ -121,14 +112,13 @@ export default function GaleriaImagenes({ imagenes: imagenesProps, propiedadId }
 
   return (
     <div className="grid grid-cols-2 gap-4 mb-6">
-      {/* Imagen principal */}
-      <div className="relative aspect-square bg-gray-200 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+      {/* Columna izquierda: imagen principal */}
+      <div className="relative">
         <img
           src={imagenesUrls[0]}
-          alt="Imagen principal"
-          className="w-full h-full object-cover rounded-lg"
+          alt="Vista principal"
+          className="w-full h-[400px] object-cover rounded-lg"
           onError={(e) => {
-            // Fallback si la imagen no carga
             e.currentTarget.src = "/placeholder-image.png";
             console.error("Error al cargar imagen:", imagenesUrls[0]);
           }}
@@ -138,33 +128,42 @@ export default function GaleriaImagenes({ imagenes: imagenesProps, propiedadId }
         </div>
       </div>
 
-      {/* Imágenes adicionales */}
+      {/* Columna derecha: 2 imágenes adicionales, cada una con 200px de alto */}
       <div className="flex flex-col gap-4">
-        {imagenesUrls.length > 1 ? (
-          imagenesUrls.slice(1, 3).map((img, index) => (
-            <div key={index} className="relative h-full bg-gray-200 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-              <img 
-                src={img} 
-                alt={`Vista ${index + 1}`} 
-                className="w-full h-full object-cover rounded-lg" 
-                onError={(e) => {
-                  // Fallback si la imagen no carga
-                  e.currentTarget.src = "/placeholder-image.png";
-                  console.error("Error al cargar imagen:", img);
-                }}
-              />
-              <div className="absolute bottom-2 left-2 bg-white/80 px-3 py-1 rounded-full text-sm text-gray-700">
-                Vista {index + 1}
-              </div>
+        {imagenesUrls.slice(1, 3).map((img, index) => (
+          <div key={index} className="relative">
+            <img
+              src={img}
+              alt={`Vista ${index + 2}`}
+              className="w-full h-[200px] object-cover rounded-lg"
+              onError={(e) => {
+                e.currentTarget.src = "/placeholder-image.png";
+                console.error("Error al cargar imagen:", img);
+              }}
+            />
+            <div className="absolute bottom-2 left-2 bg-white/80 px-3 py-1 rounded-full text-sm text-gray-700">
+              Vista {index + 2}
             </div>
-          ))
-        ) : (
-          // Si solo hay una imagen, mostrar placeholders
-          Array(2).fill(0).map((_, index) => (
-            <div key={index} className="relative h-full bg-gray-100 rounded-lg flex items-center justify-center">
+          </div>
+        ))}
+
+        {/* Si solo hay 1 imagen en total, slice(1,3) estará vacío: mostrar placeholders */}
+        {imagenesUrls.length === 1 && (
+          <>
+            <div className="relative h-[200px] bg-gray-100 rounded-lg flex items-center justify-center">
               <p className="text-gray-400 text-sm">No hay imagen adicional</p>
             </div>
-          ))
+            <div className="relative h-[200px] bg-gray-100 rounded-lg flex items-center justify-center">
+              <p className="text-gray-400 text-sm">No hay imagen adicional</p>
+            </div>
+          </>
+        )}
+        
+        {/* Si solo hay 2 imágenes en total, slice(1,3) mostrará 1 imagen; rellenar la segunda */}
+        {imagenesUrls.length === 2 && (
+          <div className="relative h-[200px] bg-gray-100 rounded-lg flex items-center justify-center">
+            <p className="text-gray-400 text-sm">No hay imagen adicional</p>
+          </div>
         )}
       </div>
     </div>

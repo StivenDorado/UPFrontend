@@ -139,8 +139,8 @@ const OfertasPrecio = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="bg-[#2A8C82] text-white p-4 rounded-t-lg flex items-center">
+    <div className="max-w-7xl mx-auto">
+      <div className="bg-[#2A8C82] text-white p-4 flex items-center">
         <DollarSign className="mr-2" />
         <h2 className="text-xl font-medium">SOLICITUD DE OFERTAS DE PRECIO</h2>
       </div>

@@ -17,7 +17,6 @@ export const Modal: React.FC<ModalProps> = ({
   size = "md",
   className = "",
 }) => {
-  // Variantes de tamaño
   const sizeClasses = {
     sm: "max-w-md",
     md: "max-w-2xl",
@@ -25,7 +24,6 @@ export const Modal: React.FC<ModalProps> = ({
     xl: "max-w-6xl",
   };
 
-  // Cierra el modal al presionar Escape y evita el scroll en el body
   useEffect(() => {
     const handleEscapeKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -94,7 +92,7 @@ export const Modal: React.FC<ModalProps> = ({
               duration-200
             "
             onClick={onClose}
-            aria-label="Close modal"
+            aria-label="Cerrar modal"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
