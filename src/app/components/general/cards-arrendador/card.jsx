@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Heart, MapPin, Calendar, DollarSign, Home, Star } from "lucide-react";
+import { Heart, MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function AccommodationCard({ id }) {
@@ -40,13 +40,42 @@ export default function AccommodationCard({ id }) {
     setShowDetails(!showDetails);
   };
 
-  const handleCardClick = () => {
+  // Función para incrementar el contador de vistas en el backend
+  const incrementarVistas = async () => {
+    try {
+      await fetch(`http://localhost:4000/api/propiedades/${id}/vistas`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+    } catch (error) {
+      console.error("Error al incrementar vistas:", error);
+    }
+  };
+
+  const handleCardClick = async () => {
+    // Incrementar las vistas en el backend antes de redirigir
+    await incrementarVistas();
     router.push(`/descripcionPropiedad/${id}`);
   };
 
-  if (loading) return <div className="w-full max-w-xs mx-auto bg-white p-4 rounded-lg">Cargando...</div>;
-  if (error) return <div className="w-full max-w-xs mx-auto bg-white p-4 rounded-lg text-red-500">Error: {error}</div>;
-  if (!propiedad) return <div className="w-full max-w-xs mx-auto bg-white p-4 rounded-lg">No se encontró la propiedad</div>;
+  if (loading)
+    return (
+      <div className="w-full max-w-xs mx-auto bg-white p-4 rounded-lg">
+        Cargando...
+      </div>
+    );
+  if (error)
+    return (
+      <div className="w-full max-w-xs mx-auto bg-white p-4 rounded-lg text-red-500">
+        Error: {error}
+      </div>
+    );
+  if (!propiedad)
+    return (
+      <div className="w-full max-w-xs mx-auto bg-white p-4 rounded-lg">
+        No se encontró la propiedad
+      </div>
+    );
 
   // Extraer datos de la propiedad
   const imageUrl = propiedad.imagenes?.[0]?.url || "/default-image.jpg";
@@ -62,9 +91,9 @@ export default function AccommodationCard({ id }) {
       onClick={handleCardClick}
     >
       <div className="relative">
-        <img 
-          src={imageUrl} 
-          alt={propiedad.titulo} 
+        <img
+          src={imageUrl}
+          alt={propiedad.titulo}
           className="w-full h-48 object-cover"
           onError={(e) => {
             e.target.src = "/default-image.jpg";
@@ -75,9 +104,7 @@ export default function AccommodationCard({ id }) {
           onClick={toggleFavorite}
         >
           <Heart
-            className={`h-5 w-5 ${
-              isFavorite ? "fill-red-500 text-red-500" : "text-gray-800"
-            }`}
+            className={`h-5 w-5 ${isFavorite ? "fill-red-500 text-red-500" : "text-gray-800"}`}
           />
         </button>
       </div>
@@ -88,7 +115,7 @@ export default function AccommodationCard({ id }) {
         </p>
         <p className="text-sm mb-2 text-gray-600">Disponible</p>
         <p className="font-semibold text-gray-800">
-          ${new Intl.NumberFormat('es-CO').format(propiedad.precio)} COP <span className="font-normal text-gray-600">Por mes</span>
+          ${new Intl.NumberFormat("es-CO").format(propiedad.precio)} COP <span className="font-normal text-gray-600">Por mes</span>
         </p>
 
         <button

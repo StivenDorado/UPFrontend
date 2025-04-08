@@ -23,7 +23,6 @@ export const useAuth = () => {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
 
-  // Función para verificar si un usuario es arrendador
   const verificarArrendador = async (token, userUid) => {
     try {
       const res = await fetch("http://localhost:4000/api/arrendador", {
@@ -33,11 +32,10 @@ export function AuthProvider({ children }) {
           Authorization: `Bearer ${token}`,
         },
       });
-      
+
       const data = await res.json();
       console.log("Respuesta del endpoint de arrendador:", data);
-      
-      // Si la respuesta es un array, buscamos el arrendador con el mismo UID
+
       if (Array.isArray(data)) {
         const arrendador = data.find((p) => p.uid.trim() === userUid.trim());
         if (arrendador) {
@@ -45,7 +43,7 @@ export function AuthProvider({ children }) {
           return true;
         }
       }
-      
+
       return false;
     } catch (error) {
       console.error("Error verificando arrendador:", error);
@@ -53,57 +51,81 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Escucha los cambios en el estado de autenticación
+  const verificarUsuario = async (token, uid) => {
+    try {
+      const res = await fetch(`http://localhost:4000/api/usuario/${uid}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.status === 404) return false;
+      if (!res.ok) throw new Error("Error en la verificación del usuario");
+      return true;
+    } catch (error) {
+      console.error("Error al verificar usuario:", error);
+      return false;
+    }
+  };
+
+  const registrarUsuario = async (token, usuarioData) => {
+    try {
+      const res = await fetch("http://localhost:4000/api/usuario", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(usuarioData),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        console.log("Error registrando usuario:", errData);
+      } else {
+        console.log("Usuario registrado exitosamente en la BD");
+      }
+    } catch (error) {
+      console.error("Error en el registro del usuario:", error);
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
-          // Obtener token y verificar estatus de arrendador
           const token = await firebaseUser.getIdToken(true);
           console.log("Token obtenido en AuthContext:", token);
-          
+
           const esArrendador = await verificarArrendador(token, firebaseUser.uid);
-          console.log("Resultado verificación arrendador en AuthContext:", esArrendador);
-          
-          // Si no es arrendador, registrar al usuario en el modelo Usuario
+          console.log("Resultado verificación arrendador:", esArrendador);
+
           if (!esArrendador) {
-            console.log("Usuario no es arrendador, se procede a registrar en el modelo Usuario");
-            const usuarioData = {
-              uid: firebaseUser.uid,
-              nombres_apellidos: firebaseUser.displayName || "Nombre no proporcionado",
-              email: firebaseUser.email,
-              fotoPerfil: firebaseUser.photoURL || null,
-            };
-            console.log("Datos a enviar:", usuarioData);
-          
-            const res = await fetch("http://localhost:4000/api/usuario", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify(usuarioData)
-            });
-          
-            console.log("Respuesta del registro:", res);
-          
-            if (!res.ok) {
-              const errData = await res.json();
-              console.error("Error registrando el usuario en la BD", errData);
+            const yaRegistrado = await verificarUsuario(token, firebaseUser.uid);
+
+            if (!yaRegistrado) {
+              const usuarioData = {
+                uid: firebaseUser.uid,
+                nombres_apellidos: firebaseUser.displayName || "Nombre no proporcionado",
+                email: firebaseUser.email,
+                fotoPerfil: firebaseUser.photoURL || null,
+              };
+              console.log("Registrando usuario con datos:", usuarioData);
+              await registrarUsuario(token, usuarioData);
             } else {
-              console.log("Usuario registrado exitosamente en la BD");
+              console.log("El usuario ya está registrado como Usuario");
             }
           }
-          
-  
-          // Actualizar el estado del usuario con la propiedad arrendador
+
           setUser({ 
             ...firebaseUser, 
             loggedIn: true, 
             arrendador: esArrendador 
           });
         } catch (error) {
-          console.error("Error al verificar estado de arrendador:", error);
+          console.error("Error en proceso de autenticación:", error);
           setUser({ 
             ...firebaseUser, 
             loggedIn: true, 
@@ -114,13 +136,13 @@ export function AuthProvider({ children }) {
         setUser(null);
       }
     });
+
     return () => unsubscribe();
   }, []);
 
   const login = async (email, password) => {
     try {
       const response = await signInWithEmailAndPassword(auth, email, password);
-      console.log("Login response:", response);
       return response;
     } catch (error) {
       console.error("Error en login:", error);
@@ -132,7 +154,6 @@ export function AuthProvider({ children }) {
     try {
       const provider = new GoogleAuthProvider();
       const response = await signInWithPopup(auth, provider);
-      console.log("Google login response:", response);
       return response;
     } catch (error) {
       console.error("Error en login con Google:", error);
@@ -143,7 +164,6 @@ export function AuthProvider({ children }) {
   const register = async (email, password) => {
     try {
       const response = await createUserWithEmailAndPassword(auth, email, password);
-      console.log("Register response:", response);
       return response;
     } catch (error) {
       console.error("Error en registro:", error);
@@ -154,7 +174,6 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       const response = await signOut(auth);
-      console.log("Logout response:", response);
       localStorage.removeItem("arrendadorId");
       setUser(null);
       return response;

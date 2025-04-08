@@ -22,6 +22,7 @@ interface Caracteristica {
   tipo_vivienda: string;
   habitaciones: number;
   banos: number;
+  capacidad: number;
   wifi: boolean;
   energia: boolean;
   tv: boolean;
@@ -276,6 +277,7 @@ export default function ConfirmationPage() {
                       <li><strong>Tipo de Vivienda:</strong> {property.caracteristicas[0].tipo_vivienda}</li>
                       <li><strong>Habitaciones:</strong> {property.caracteristicas[0].habitaciones}</li>
                       <li><strong>Baños:</strong> {property.caracteristicas[0].banos}</li>
+                      <li><strong>Capacidad:</strong> {property.caracteristicas[0].capacidad}</li>
                       <li><strong>Wifi:</strong> {property.caracteristicas[0].wifi ? "Sí" : "No"}</li>
                       <li><strong>Energía:</strong> {property.caracteristicas[0].energia ? "Sí" : "No"}</li>
                       <li><strong>TV:</strong> {property.caracteristicas[0].tv ? "Sí" : "No"}</li>
@@ -291,6 +293,7 @@ export default function ConfirmationPage() {
                       <li><strong>Terraza:</strong> {property.caracteristicas[0].terraza ? "Sí" : "No"}</li>
                       <li><strong>Amoblado:</strong> {property.caracteristicas[0].amoblado ? "Sí" : "No"}</li>
                       <li><strong>Acepta Mascotas:</strong> {property.caracteristicas[0].acepta_mascotas ? "Sí" : "No"}</li>
+                      
                     </ul>
                   </div>
                 )}

@@ -461,7 +461,7 @@ export default function PublicacionPage() {
                     <span className="text-sm">
                       {propiedad.caracteristicas[0]?.acepta_mascotas ? "Acepta mascotas" : "No mascotas"}
                     </span>
-                  </div> Ubicacion
+                  </div>
                   {propiedad.caracteristicas[0]?.jardin && (
                     <div className="flex items-center gap-2 bg-[#9BF2EA]/10 px-3 py-2 rounded-full">
                       <TreePine className="w-4 h-4 text-[#2A8C82]" />
@@ -539,24 +539,10 @@ export default function PublicacionPage() {
           <div className="md:col-span-1">
             <div className="bg-white p-6 rounded-2xl shadow-md border border-[#9BF2EA]/20 sticky top-8">
               <div className="bg-[#9BF2EA]/10 p-4 rounded-lg mb-6">
-                <div className="flex justify-between mb-2">
-                  <span className="text-gray-700">
-                    ${propiedad.precio.toLocaleString("es-CO")} COP x 3 noches
-                  </span>
-                  <span className="font-medium">
-                    ${(propiedad.precio * 3).toLocaleString("es-CO")} COP
-                  </span>
-                </div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-gray-700">Tarifa de limpieza</span>
-                  <span className="font-medium">
-                    ${(propiedad.precio * 0.1).toLocaleString("es-CO")} COP
-                  </span>
-                </div>
                 <div className="flex justify-between pt-3 border-t border-[#41BFB3]/20 mt-3">
                   <span className="font-bold text-[#275950]">Total</span>
                   <span className="font-bold text-[#275950]">
-                    ${(propiedad.precio * 3.1).toLocaleString("es-CO")} COP
+                    ${propiedad.precio.toLocaleString("es-CO")} COP
                   </span>
                 </div>
               </div>

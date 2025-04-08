@@ -16,23 +16,40 @@ export default function Landing() {
   const [isLoading, setIsLoading] = useState(true);
 
   // Función para obtener propiedades del backend
-  const fetchProperties = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch('http://localhost:4000/api/alojamientos');
-      
-      if (!response.ok) {
-        throw new Error('Error al cargar propiedades');
+ // Función para obtener propiedades del backend
+const fetchProperties = async () => {
+  try {
+    setIsLoading(true);
+    const response = await fetch('http://localhost:4000/api/alojamientos');
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        // Si es 404, simplemente no hay propiedades, no mostrar error en consola
+        setProperties([]);
+        return;
       }
-      
-      const data = await response.json();
-      setProperties(data);
-    } catch (error) {
-      console.error('Error al obtener propiedades:', error);
-    } finally {
-      setIsLoading(false);
+      throw new Error('Error al cargar propiedades');
     }
-  };
+
+    const data = await response.json();
+
+    // Verificamos si el array está vacío
+    if (Array.isArray(data) && data.length === 0) {
+      setProperties([]);
+    } else {
+      setProperties(data);
+    }
+  } catch (error) {
+    // Solo mostrar el error si no es un "no hay propiedades"
+    if (error.message !== 'Error al cargar propiedades') {
+      console.error('Error inesperado al obtener propiedades:', error);
+    }
+    setProperties([]);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   // Cargar propiedades al montar el componente
   useEffect(() => {
