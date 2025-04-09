@@ -23,7 +23,6 @@ export default function AccommodationCard({ id }) {
         setUid(user.uid);
       }
     });
-
     return () => unsubscribe();
   }, []);
 
@@ -40,7 +39,6 @@ export default function AccommodationCard({ id }) {
         setLoading(false);
       }
     };
-
     fetchPropiedad();
   }, [id]);
 
@@ -50,9 +48,8 @@ export default function AccommodationCard({ id }) {
       setError("Usuario no autenticado");
       return;
     }
-
     try {
-      // Eliminar imágenes de Firebase
+      // Eliminar imágenes de Firebase si existen
       if (propiedad?.imagenes) {
         const storage = getStorage(app);
         await Promise.all(
@@ -66,19 +63,16 @@ export default function AccommodationCard({ id }) {
           })
         );
       }
-
       const res = await fetch(`http://localhost:4000/api/propiedades/${id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ arrendador_uid: uid }),
       });
-
       if (!res.ok) {
         const errorMessage = await res.text();
         throw new Error(errorMessage);
       }
-
-      // Ocultar card sin recargar página
+      // Ocultar la card sin recargar
       setVisible(false);
     } catch (err) {
       console.error("Error al eliminar propiedad:", err);
@@ -102,13 +96,29 @@ export default function AccommodationCard({ id }) {
   };
 
   const handleView = (e, id) => {
-    e.stopPropagation(); // Para evitar que se propague si estás en un onClick de la tarjeta
+    e.stopPropagation();
     router.push(`/propiedadesPublicadas/${id}`);
   };
 
+  // Función para incrementar vistas (suponiendo que tu endpoint es POST /propiedades/:id/vistas)
+  const incrementarVistas = async () => {
+    try {
+      await fetch(`http://localhost:4000/api/propiedades/${id}/vistas`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+    } catch (error) {
+      console.error("Error al incrementar vistas:", error);
+    }
+  };
+
+  const handleCardClick = async () => {
+    // Incrementar la cantidad de vistas en el backend antes de redirigir
+    await incrementarVistas();
+    router.push(`/descripcionPropiedad/${id}`);
+  };
 
   if (!visible) return null;
-
   if (loading)
     return (
       <div className="w-full max-w-xs mx-auto bg-white p-4 rounded-lg">
@@ -128,6 +138,7 @@ export default function AccommodationCard({ id }) {
       </div>
     );
 
+  // Extraer datos de la propiedad
   const imageUrl = propiedad.imagenes?.[0]?.url || "/default-image.jpg";
   const features = [
     propiedad.caracteristicas?.tipo_vivienda,
@@ -136,7 +147,7 @@ export default function AccommodationCard({ id }) {
   ].filter(Boolean);
 
   return (
-    <div className="w-full max-w-xs mx-auto bg-white text-gray-800 border-2 border-gray-200 rounded-lg overflow-hidden cursor-pointer transition-shadow shadow-lg hover:shadow-xl">
+    <div className="w-full max-w-xs mx-auto bg-white text-gray-800 border-2 border-gray-200 rounded-lg overflow-hidden cursor-pointer transition-shadow shadow-lg hover:shadow-xl" onClick={handleCardClick}>
       <div className="relative">
         <img
           src={imageUrl}
@@ -147,7 +158,6 @@ export default function AccommodationCard({ id }) {
         <div className="absolute top-0 left-0 bg-black/50 text-white px-3 py-1 text-sm rounded-br-lg">
           {propiedad.estado ? "Activa" : "Inactiva"}
         </div>
-        
       </div>
 
       <div className="p-4">
@@ -165,7 +175,8 @@ export default function AccommodationCard({ id }) {
 
         <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
           <Eye className="h-4 w-4" />
-          <span>{propiedad.vistas || 0} vistas</span>
+          {/* Cambia 'propiedad.vistas' a 'propiedad.views' si ese es el nombre real del campo */}
+          <span>{propiedad.views || 0} vistas</span>
         </div>
 
         <div className="flex gap-2 mt-4">
@@ -173,16 +184,13 @@ export default function AccommodationCard({ id }) {
             type="button"
             onClick={(e) => handleView(e, propiedad.id)}
             className="flex-1 text-white px-3 py-2 rounded-md text-sm flex items-center justify-center gap-1 transition-colors"
-            style={{
-              backgroundColor: "#2A8C82",
-            }}
+            style={{ backgroundColor: "#2A8C82" }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#246f68")}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#2A8C82")}
           >
             <Eye size={16} />
             Ver
           </button>
-
 
           <button
             type="button"
@@ -205,10 +213,7 @@ export default function AccommodationCard({ id }) {
             <p className="text-sm font-medium mb-2">Características:</p>
             <div className="flex flex-wrap gap-1">
               {features.map((feature, index) => (
-                <span
-                  key={index}
-                  className="bg-gray-100 text-xs rounded-full px-2 py-1 border border-gray-200"
-                >
+                <span key={index} className="bg-gray-100 text-xs rounded-full px-2 py-1 border border-gray-200">
                   {feature}
                 </span>
               ))}

@@ -11,6 +11,7 @@ export default function AccommodationCard({ id }) {
   const [error, setError] = useState(null);
   const router = useRouter();
 
+  // Traer datos de la propiedad
   useEffect(() => {
     const fetchPropiedad = async () => {
       try {
@@ -30,30 +31,32 @@ export default function AccommodationCard({ id }) {
     fetchPropiedad();
   }, [id]);
 
+  // Alterna favorito
   const toggleFavorite = (e) => {
     e.stopPropagation();
     setIsFavorite(!isFavorite);
   };
 
+  // Alterna detalles
   const toggleDetails = (e) => {
     e.stopPropagation();
     setShowDetails(!showDetails);
   };
 
-  // Función para incrementar el contador de vistas en el backend
+  // Función que llama al endpoint para incrementar el contador de vistas
   const incrementarVistas = async () => {
     try {
       await fetch(`http://localhost:4000/api/propiedades/${id}/vistas`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" }
       });
     } catch (error) {
       console.error("Error al incrementar vistas:", error);
     }
   };
 
+  // Al hacer click en la card, se incrementa la cantidad de vistas y se redirige
   const handleCardClick = async () => {
-    // Incrementar las vistas en el backend antes de redirigir
     await incrementarVistas();
     router.push(`/descripcionPropiedad/${id}`);
   };
