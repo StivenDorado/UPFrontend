@@ -1,62 +1,51 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import Footer from "../components/general/footer/Footer";
-import SearchBar from "../components/general/barSearch/searchBar";
+import SearchBar from "../components/general/barSearch/searchBar"; // Verificar ruta de importación
 import FiltersMenu from "../components/general/filters/Menu";
 import Header from "../components/general/header/Headerlg";
 import { Home, Building, BedDouble, BookOpen } from "lucide-react";
 import AccommodationCard from "../components/general/cards-arrendador/card";
 
 export default function Landing() {
-  const [isFiltersOpen, setFiltersOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState("Todos");
+  const [searchTerm, setSearchTerm] = useState("");
   const [properties, setProperties] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isFiltersOpen, setFiltersOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("Todos");
 
-  // Función para obtener propiedades del backend
- // Función para obtener propiedades del backend
-const fetchProperties = async () => {
-  try {
-    setIsLoading(true);
-    const response = await fetch('http://localhost:4000/api/alojamientos');
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        // Si es 404, simplemente no hay propiedades, no mostrar error en consola
-        setProperties([]);
-        return;
-      }
-      throw new Error('Error al cargar propiedades');
-    }
-
-    const data = await response.json();
-
-    // Verificamos si el array está vacío
-    if (Array.isArray(data) && data.length === 0) {
-      setProperties([]);
-    } else {
-      setProperties(data);
-    }
-  } catch (error) {
-    // Solo mostrar el error si no es un "no hay propiedades"
-    if (error.message !== 'Error al cargar propiedades') {
-      console.error('Error inesperado al obtener propiedades:', error);
-    }
-    setProperties([]);
-  } finally {
-    setIsLoading(false);
-  }
-};
-
-
-  // Cargar propiedades al montar el componente
   useEffect(() => {
-    fetchProperties();
-  }, []);
+    const fetchProperties = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const endpoint = searchTerm 
+          ? `http://localhost:4000/api/propiedades/search?q=${encodeURIComponent(searchTerm)}`
+          : 'http://localhost:4000/api/alojamientos';
 
-  const toggleFiltersMenu = () => setFiltersOpen(!isFiltersOpen);
+        const response = await fetch(endpoint);
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Error en la búsqueda");
+        }
+
+        const result = await response.json();
+        setProperties(searchTerm ? result.data : result);
+
+      } catch (err) {
+        setError(err.message);
+        console.error("Error:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProperties();
+  }, [searchTerm]);
 
   const categories = [
     { name: "Todos", icon: <Home className="w-6 h-6" /> },
@@ -69,6 +58,12 @@ const fetchProperties = async () => {
   return (
     <div className="bg-gray-800 min-h-screen">
       <Header />
+      
+      {/* Asegurar paso correcto de props */}
+      <SearchBar 
+        onSearchTermChange={setSearchTerm} // Prop correctamente pasado
+        onFiltersClick={() => setFiltersOpen(true)}
+      />
 
       <section className="p-4 bg-[#275950]">
         <div className="flex justify-between w-full px-8 mb-4">
@@ -79,7 +74,7 @@ const fetchProperties = async () => {
               className={`flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium transition-colors flex-1 mx-2 ${
                 selectedCategory === category.name
                   ? "bg-[#9BF2EA] text-[#275950]"
-                  : "bg-[#9BF2EA] text-[#275950] hover:bg-[#8ad9d1] hover:text-[#275950]"
+                  : "bg-[#9BF2EA] text-[#275950] hover:bg-[#8ad9d1]"
               }`}
             >
               {category.icon}
@@ -92,24 +87,35 @@ const fetchProperties = async () => {
       <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6 bg-white justify-center">
         {isLoading ? (
           <div className="col-span-full text-center py-8">
-            <p>Cargando propiedades...</p>
+            <p className="text-gray-600">Buscando propiedades...</p>
+          </div>
+        ) : error ? (
+          <div className="col-span-full text-center py-8">
+            <p className="text-red-500">{error}</p>
           </div>
         ) : properties.length === 0 ? (
           <div className="col-span-full text-center py-8">
-            <p>No se encontraron propiedades</p>
+            <p className="text-gray-600">
+              {searchTerm 
+                ? `No hay resultados para "${searchTerm}"`
+                : "No se encontraron propiedades"}
+            </p>
           </div>
         ) : (
           properties.map((property) => (
-            <AccommodationCard 
-              key={property.id} 
-              id={property.id} 
-              apartmentData={property} 
+            <AccommodationCard
+              key={property.id}
+              id={property.id}
+              apartmentData={property}
             />
           ))
         )}
       </section>
 
-      <FiltersMenu isOpen={isFiltersOpen} onClose={toggleFiltersMenu} />
+      <FiltersMenu 
+        isOpen={isFiltersOpen} 
+        onClose={() => setFiltersOpen(false)}
+      />
       <Footer />
     </div>
   );
