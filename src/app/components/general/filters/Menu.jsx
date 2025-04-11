@@ -28,7 +28,7 @@ const FiltersMenu = ({ isOpen, onClose }) => {
           ←
         </button>
 
-        <h2 className="text-2xl font-semibold text-center mb-6">Filtros</h2>
+        <h2 className="text-2xl font-semibold text-center mb-6">Filtros bitch</h2>
 
         <div className="space-y-8 text-gray-800">
           {/* Tipo de vivienda */}

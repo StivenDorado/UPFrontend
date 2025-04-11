@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Footer from "../components/general/footer/Footer";
-import SearchBar from "../components/general/barSearch/searchBar"; // Verificar ruta de importación
 import FiltersMenu from "../components/general/filters/Menu";
 import Header from "../components/general/header/Headerlg";
 import { Home, Building, BedDouble, BookOpen } from "lucide-react";
@@ -57,11 +56,9 @@ export default function Landing() {
 
   return (
     <div className="bg-gray-800 min-h-screen">
-      <Header />
-      
-      {/* Asegurar paso correcto de props */}
-      <SearchBar 
-        onSearchTermChange={setSearchTerm} // Prop correctamente pasado
+      <Header 
+        showSearchBar={true}
+        onSearchTermChange={setSearchTerm}
         onFiltersClick={() => setFiltersOpen(true)}
       />
 
