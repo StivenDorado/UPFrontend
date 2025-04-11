@@ -14,19 +14,36 @@ export default function Landing() {
   const [error, setError] = useState(null);
   const [isFiltersOpen, setFiltersOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("Todos");
+  const [appliedFilters, setAppliedFilters] = useState(null);
 
   useEffect(() => {
     const fetchProperties = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        
-        const endpoint = searchTerm 
-          ? `http://localhost:4000/api/propiedades/search?q=${encodeURIComponent(searchTerm)}`
-          : 'http://localhost:4000/api/alojamientos';
+
+        let endpoint = "";
+
+        if (searchTerm) {
+          endpoint = `http://localhost:4000/api/propiedades/search?q=${encodeURIComponent(searchTerm)}`;
+        } else if (appliedFilters) {
+          const filteredFilters = Object.entries(appliedFilters).filter(([key, value]) => {
+            const serviceKeys = ['wifi', 'energia', 'tv', 'cocina', 'agua', 'garaje', 'lavadora', 'nevera', 'gas'];
+            
+            if (serviceKeys.includes(key)) return value === true;
+            return value !== null && value !== undefined;
+          });
+
+          const queryParameters = filteredFilters
+            .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value.toString())}`)
+            .join("&");
+
+          endpoint = `http://localhost:4000/api/caracteristicas/buscar?${queryParameters}`;
+        } else {
+          endpoint = "http://localhost:4000/api/alojamientos";
+        }
 
         const response = await fetch(endpoint);
-        
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.error || "Error en la búsqueda");
@@ -34,7 +51,6 @@ export default function Landing() {
 
         const result = await response.json();
         setProperties(searchTerm ? result.data : result);
-
       } catch (err) {
         setError(err.message);
         console.error("Error:", err);
@@ -44,7 +60,7 @@ export default function Landing() {
     };
 
     fetchProperties();
-  }, [searchTerm]);
+  }, [searchTerm, appliedFilters]);
 
   const categories = [
     { name: "Todos", icon: <Home className="w-6 h-6" /> },
@@ -56,7 +72,7 @@ export default function Landing() {
 
   return (
     <div className="bg-gray-800 min-h-screen">
-      <Header 
+      <Header
         showSearchBar={true}
         onSearchTermChange={setSearchTerm}
         onFiltersClick={() => setFiltersOpen(true)}
@@ -93,7 +109,7 @@ export default function Landing() {
         ) : properties.length === 0 ? (
           <div className="col-span-full text-center py-8">
             <p className="text-gray-600">
-              {searchTerm 
+              {searchTerm
                 ? `No hay resultados para "${searchTerm}"`
                 : "No se encontraron propiedades"}
             </p>
@@ -109,9 +125,13 @@ export default function Landing() {
         )}
       </section>
 
-      <FiltersMenu 
-        isOpen={isFiltersOpen} 
+      <FiltersMenu
+        isOpen={isFiltersOpen}
         onClose={() => setFiltersOpen(false)}
+        onApplyFilters={(filters) => {
+          setAppliedFilters(filters);
+          setFiltersOpen(false); // Cierra el modal aquí
+        }}
       />
       <Footer />
     </div>

@@ -1,26 +1,57 @@
-import React from "react";
+import React, { useState } from "react";
 import {
-  Home, // Icono para tipo de vivienda
-  Wifi, // Icono para Wifi
-  Zap, // Icono para Energía
-  Tv, // Icono para TV
-  Utensils, // Icono para Cocina
-  Droplet, // Icono para Agua
-  Car, // Icono para Garaje
-  Settings, // Icono alternativo para Lavadora (Washer no existe)
-  Snowflake, // Icono alternativo para Nevera (Refrigerator no existe)
-  Flame, // Icono para Gas
-  Sofa, // Icono para Amoblado
-  PawPrint, // Icono para Acepta mascotas
+  Wifi, Zap, Tv, Utensils, Droplet,
+  Car, Settings, Snowflake, Flame,
+  Sofa, PawPrint, Home, BedDouble, Book
 } from "lucide-react";
 
-const FiltersMenu = ({ isOpen, onClose }) => {
-  if (!isOpen) return null; // Ocultar si el menú no está abierto
+const FiltersMenu = ({ isOpen, onClose, onApplyFilters }) => {
+  const [filters, setFilters] = useState({
+    tipo_vivienda: null,
+    wifi: false,
+    energia: false,
+    tv: false,
+    cocina: false,
+    agua: false,
+    garaje: false,
+    lavadora: false,
+    nevera: false,
+    gas: false,
+    amoblado: null,
+    mascotas: null
+  });
+
+  const handleTipoVivienda = (tipo) => {
+    setFilters(prev => ({
+      ...prev,
+      tipo_vivienda: prev.tipo_vivienda === tipo ? null : tipo
+    }));
+  };
+
+  const toggleServicio = (servicio) => {
+    setFilters(prev => ({
+      ...prev,
+      [servicio]: !prev[servicio]
+    }));
+  };
+
+  const handleOption = (key, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: prev[key] === value ? null : value
+    }));
+  };
+
+  const handleAplicar = () => {
+    onApplyFilters(filters);
+    onClose(); // Cierre garantizado
+  };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
       <div className="bg-white w-full max-w-3xl rounded-lg shadow-lg p-6 overflow-y-auto max-h-[90%] relative">
-        {/* Botón de cierre */}
         <button
           className="absolute top-4 left-4 text-gray-500 hover:text-black"
           onClick={onClose}
@@ -28,108 +59,123 @@ const FiltersMenu = ({ isOpen, onClose }) => {
           ←
         </button>
 
-        <h2 className="text-2xl font-semibold text-center mb-6">Filtros bitch</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center">Filtros</h2>
 
-        <div className="space-y-8 text-gray-800">
-          {/* Tipo de vivienda */}
-          <section className="text-center">
-            <h3 className="text-lg font-semibold mb-4">Tipo de vivienda</h3>
-            <div className="flex justify-center space-x-6">
-              {[
-                { label: "Apartamento", icon: <Home className="w-6 h-6" /> },
-                { label: "Casa", icon: <Home className="w-6 h-6" /> },
-                { label: "Casa de Familia", icon: <Home className="w-6 h-6" /> },
-                { label: "Estudio", icon: <Home className="w-6 h-6" /> },
-                { label: "Habitación", icon: <Home className="w-6 h-6" /> },
-              ].map((tipo) => (
-                <button
-                  key={tipo.label}
-                  className="flex flex-col items-center text-sm border-2 border-gray-300 rounded-lg p-4 hover:border-gray-500"
-                >
-                  {tipo.icon}
-                  {tipo.label}
-                </button>
-              ))}
+        {/* Tipo de Vivienda */}
+        <section className="mb-8">
+          <h3 className="text-lg font-semibold mb-4">Tipo de vivienda</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {[
+              { label: "Apartamento", value: "apartamento", icon: <Home size={20} /> },
+              { label: "Casa", value: "casa", icon: <Home size={20} /> },
+              { label: "Casa de Familia", value: "casa_familia", icon: <Home size={20} /> },
+              { label: "Estudio", value: "estudio", icon: <Book size={20} /> },
+              { label: "Habitación", value: "habitacion", icon: <BedDouble size={20} /> }
+            ].map((item) => (
+              <button
+                key={item.value}
+                onClick={() => handleTipoVivienda(item.value)}
+                className={`flex items-center justify-center p-3 border-2 rounded-lg ${
+                  filters.tipo_vivienda === item.value
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 hover:border-gray-400"
+                }`}
+              >
+                {item.icon}
+                <span className="ml-2 text-sm">{item.label}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Servicios */}
+        <section className="mb-8">
+          <h3 className="text-lg font-semibold mb-4">Servicios</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { label: "Wifi", key: "wifi", icon: <Wifi size={20} /> },
+              { label: "Energía", key: "energia", icon: <Zap size={20} /> },
+              { label: "Cocina", key: "cocina", icon: <Utensils size={20} /> },
+              { label: "Agua", key: "agua", icon: <Droplet size={20} /> },
+              { label: "Lavadora", key: "lavadora", icon: <Settings size={20} /> },
+              { label: "Nevera", key: "nevera", icon: <Snowflake size={20} /> },
+              { label: "TV", key: "tv", icon: <Tv size={20} /> },
+              { label: "Garaje", key: "garaje", icon: <Car size={20} /> },
+              { label: "Gas", key: "gas", icon: <Flame size={20} /> },
+            ].map((item) => (
+              <button
+                key={item.key}
+                onClick={() => toggleServicio(item.key)}
+                className={`flex items-center p-3 border-2 rounded-lg ${
+                  filters[item.key]
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 hover:border-gray-400"
+                }`}
+              >
+                {item.icon}
+                <span className="ml-2 text-sm">{item.label}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Otros Filtros */}
+        <section className="mb-8">
+          <h3 className="text-lg font-semibold mb-4">Otros filtros</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Amoblado</p>
+              <div className="flex gap-2">
+                {[
+                  { label: "Amoblado", value: true, icon: <Sofa size={20} /> },
+                  { label: "Sin amoblar", value: false, icon: <Sofa size={20} className="opacity-50" /> }
+                ].map((item) => (
+                  <button
+                    key={item.label}
+                    onClick={() => handleOption("amoblado", item.value)}
+                    className={`flex-1 flex items-center justify-center p-2 border-2 rounded-lg ${
+                      filters.amoblado === item.value
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:border-gray-400"
+                    }`}
+                  >
+                    {item.icon}
+                    <span className="ml-2 text-sm">{item.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-          </section>
 
-          {/* Servicios */}
-          <section className="text-center">
-            <h3 className="text-lg font-semibold mb-4">Servicios</h3>
-            <div className="grid grid-cols-3 gap-4">
-              {[
-                { label: "Wifi", icon: <Wifi className="w-6 h-6" /> },
-                { label: "Energía", icon: <Zap className="w-6 h-6" /> },
-                { label: "TV", icon: <Tv className="w-6 h-6" /> },
-                { label: "Cocina", icon: <Utensils className="w-6 h-6" /> },
-                { label: "Agua", icon: <Droplet className="w-6 h-6" /> },
-                { label: "Garaje", icon: <Car className="w-6 h-6" /> },
-                { label: "Lavadora", icon: <Settings className="w-6 h-6" /> }, // Icono alternativo
-                { label: "Nevera", icon: <Snowflake className="w-6 h-6" /> }, // Icono alternativo
-                { label: "Gas", icon: <Flame className="w-6 h-6" /> },
-              ].map((servicio) => (
-                <button
-                  key={servicio.label}
-                  className="flex flex-col items-center text-sm border-2 border-gray-300 rounded-lg p-4 hover:border-gray-500"
-                >
-                  {servicio.icon}
-                  {servicio.label}
-                </button>
-              ))}
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Mascotas</p>
+              <div className="flex gap-2">
+                {[
+                  { label: "Acepta", value: true, icon: <PawPrint size={20} /> },
+                  { label: "No acepta", value: false, icon: <PawPrint size={20} className="opacity-50" /> }
+                ].map((item) => (
+                  <button
+                    key={item.label}
+                    onClick={() => handleOption("mascotas", item.value)}
+                    className={`flex-1 flex items-center justify-center p-2 border-2 rounded-lg ${
+                      filters.mascotas === item.value
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:border-gray-400"
+                    }`}
+                  >
+                    {item.icon}
+                    <span className="ml-2 text-sm">{item.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* Filtros adicionales */}
-          <section className="text-center">
-            <h3 className="text-lg font-semibold mb-4">Otros filtros</h3>
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { label: "Amoblado", icon: <Sofa className="w-6 h-6" /> },
-                {
-                  label: "Sin Amoblar",
-                  icon: (
-                    <div className="relative">
-                      <Sofa className="w-6 h-6" />
-                      <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
-                        <div className="w-6 h-0.5 bg-red-500 transform rotate-45"></div>
-                      </div>
-                    </div>
-                  ),
-                },
-                {
-                  label: "Acepta mascotas",
-                  icon: <PawPrint className="w-6 h-6" />,
-                },
-                {
-                  label: "No acepta mascotas",
-                  icon: (
-                    <div className="relative">
-                      <PawPrint className="w-6 h-6" />
-                      <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
-                        <div className="w-6 h-0.5 bg-red-500 transform rotate-45"></div>
-                      </div>
-                    </div>
-                  ),
-                },
-              ].map((filtro) => (
-                <button
-                  key={filtro.label}
-                  className="flex flex-col items-center text-sm border-2 border-gray-300 rounded-lg p-4 hover:border-gray-500"
-                >
-                  {filtro.icon}
-                  {filtro.label}
-                </button>
-              ))}
-            </div>
-          </section>
-        </div>
-
-        {/* Botón para aplicar filtros */}
         <button
-          className="mt-6 w-full bg-gray-800 text-white py-2 rounded-lg hover:bg-gray-900"
-          onClick={onClose}
+          className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          onClick={handleAplicar} // Usamos el handler corregido
         >
-          Aplicar Filtros
+          Aplicar filtros
         </button>
       </div>
     </div>
