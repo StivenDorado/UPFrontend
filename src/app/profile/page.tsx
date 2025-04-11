@@ -15,6 +15,7 @@ import {
   Building2,
   LogOut,
   ChevronLeft,
+  ChevronRight,
   Users
 } from 'lucide-react';
 
@@ -28,12 +29,15 @@ import OfertasPrecio from '../components/Profile/OfertasPrecio';
 import Perfil from '../components/Profile/Perfil';
 
 import { useAuth } from '../../context/AuthContext';
-import LandlordRegistrationModal from '../components/Profile/RegistarArrendador'; // Importa el nuevo modal
+import LandlordRegistrationModal from '../components/Profile/RegistarArrendador';
 
 const ProfileInterface = () => {
-  const { user, logout } = useAuth(); // Obtenemos el usuario autenticado desde el context
+  const { user, logout } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
+
+  // Estado para manejar el menú colapsable
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   // Leemos el parámetro 'section' (si no existe, usamos 'perfil')
   const initialSection = searchParams.get('section') || 'perfil';
@@ -65,6 +69,11 @@ const ProfileInterface = () => {
     }
   };
 
+  // Función para alternar el estado del sidebar
+  const toggleSidebar = () => {
+    setIsCollapsed(!isCollapsed);
+  };
+
   // Renderizamos el contenido de cada sección
   const renderContent = () => {
     switch (activeSection) {
@@ -93,149 +102,170 @@ const ProfileInterface = () => {
     }
   };
 
+  // Componente NavItem para simplificar la creación de elementos de navegación
+  const NavItem = ({ icon, label, section, onClick }) => {
+    const isActive = activeSection === section;
+    
+    return (
+      <button
+        className={`flex items-center w-full p-3 rounded-md ${
+          isActive ? "bg-teal-600" : "hover:bg-teal-600"
+        } ${isCollapsed ? 'justify-center' : ''}`}
+        onClick={onClick || (() => setActiveSection(section))}
+        title={isCollapsed ? label : ''}
+      >
+        {React.cloneElement(icon, { 
+          className: isCollapsed ? '' : 'mr-3', 
+          size: isCollapsed ? 24 : 18 
+        })}
+        {!isCollapsed && <span>{label}</span>}
+      </button>
+    );
+  };
+
   return (
     <div className="flex h-screen bg-white">
-      {/* Sidebar */}
-      <div className="w-72 bg-teal-700 text-white p-4">
-        <div className="flex items-center mb-6">
+      {/* Sidebar - ajustamos el ancho según el estado */}
+      <div 
+        className={`${
+          isCollapsed ? 'w-20' : 'w-72'
+        } bg-teal-700 text-white p-4 transition-all duration-300 relative`}
+      >
+        {/* Eliminamos el botón de toggle que tenía la X */}
+        
+        {/* Perfil del usuario */}
+        <div className={`flex ${isCollapsed ? 'justify-center' : 'items-center'} mb-8`}>
           {/* Foto de perfil */}
           {user.photoURL ? (
             <img
               src={user.photoURL}
               alt="Foto de perfil"
-              className="w-10 h-10 rounded-full mr-3 object-cover"
+              className={`${isCollapsed ? 'w-12 h-12' : 'w-10 h-10'} rounded-full ${isCollapsed ? '' : 'mr-3'} object-cover`}
             />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-gray-200 mr-3 flex items-center justify-center">
-              <User size={20} className="text-gray-500" />
+            <div className={`${isCollapsed ? 'w-12 h-12' : 'w-10 h-10'} rounded-full bg-gray-200 ${isCollapsed ? '' : 'mr-3'} flex items-center justify-center`}>
+              <User size={isCollapsed ? 24 : 20} className="text-gray-500" />
             </div>
           )}
 
-          <div>
-            <div className="font-semibold">{user.displayName || "Usuario"}</div>
-            <div className="text-xs flex items-center">
-              <span className="mr-1">
-                {userType === 'usuario' ? <User size={12} /> : <Building2 size={12} />}
-              </span>
-              {userType === 'usuario' ? 'Usuario' : 'Arrendador'}
+          {!isCollapsed && (
+            <div>
+              <div className="font-semibold">{user.displayName || "Usuario"}</div>
+              <div className="text-xs flex items-center">
+                <span className="mr-1">
+                  {userType === 'usuario' ? <User size={12} /> : <Building2 size={12} />}
+                </span>
+                {userType === 'usuario' ? 'Usuario' : 'Arrendador'}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
-        <nav className="space-y-3">
-          <button
-            className={`flex items-center w-full p-3 rounded-md ${activeSection === 'perfil' ? "bg-teal-600" : "hover:bg-teal-600"}`}
-            onClick={() => setActiveSection('perfil')}
-          >
-            <User className="mr-3" size={18} /> Perfil
-          </button>
-
-          <button
-            className={`flex items-center w-full p-3 rounded-md ${activeSection === 'informacion' ? "bg-teal-600" : "hover:bg-teal-600"}`}
-            onClick={() => setActiveSection('informacion')}
-          >
-            <Info className="mr-3" size={18} /> Información personal
-          </button>
+        <nav className="space-y-4">
+          <NavItem 
+            icon={<User />} 
+            label="Perfil" 
+            section="perfil" 
+          />
+          
+          <NavItem 
+            icon={<Info />} 
+            label="Información personal" 
+            section="informacion" 
+          />
 
           {userType === 'usuario' ? (
             <>
-              <button
-                className={`flex items-center w-full p-3 rounded-md ${activeSection === 'favoritos' ? "bg-teal-600" : "hover:bg-teal-600"}`}
-                onClick={() => setActiveSection('favoritos')}
-              >
-                <Heart className="mr-3" size={18} /> Lista de Favoritos
-              </button>
-
-              <button
-                className={`flex items-center w-full p-3 rounded-md ${activeSection === 'solicitudes_citas' ? "bg-teal-600" : "hover:bg-teal-600"}`}
-                onClick={() => setActiveSection('solicitudes_citas')}
-              >
-                <Calendar className="mr-3" size={18} /> Solicitudes para citas
-              </button>
-
-              <button
-                className={`flex items-center w-full p-3 rounded-md ${activeSection === 'solicitudes_reservas' ? "bg-teal-600" : "hover:bg-teal-600"}`}
-                onClick={() => setActiveSection('solicitudes_reservas')}
-              >
-                <Clock className="mr-3" size={18} /> Solicitudes de reservas
-              </button>
+              <NavItem 
+                icon={<Heart />} 
+                label="Lista de Favoritos" 
+                section="favoritos" 
+              />
+              
+              <NavItem 
+                icon={<Calendar />} 
+                label="Solicitudes para citas" 
+                section="solicitudes_citas" 
+              />
+              
+              <NavItem 
+                icon={<Clock />} 
+                label="Solicitudes de reservas" 
+                section="solicitudes_reservas" 
+              />
             </>
           ) : (
             <>
-              <button
-                className={`flex items-center w-full p-3 rounded-md ${activeSection === 'solicitudes_citas' ? "bg-teal-600" : "hover:bg-teal-600"}`}
-                onClick={() => setActiveSection('solicitudes_citas')}
-              >
-                <Calendar className="mr-3" size={18} /> Solicitudes de citas
-              </button>
-
-              <button
-                className={`flex items-center w-full p-3 rounded-md ${activeSection === 'ofertas' ? "bg-teal-600" : "hover:bg-teal-600"}`}
-                onClick={() => setActiveSection('ofertas')}
-              >
-                <DollarSign className="mr-3" size={18} /> Ofertas de precio
-              </button>
+              <NavItem 
+                icon={<Calendar />} 
+                label="Solicitudes de citas" 
+                section="solicitudes_citas" 
+              />
+              
+              <NavItem 
+                icon={<DollarSign />} 
+                label="Ofertas de precio" 
+                section="ofertas" 
+              />
             </>
           )}
 
-          <button
-            className={`flex items-center w-full p-3 rounded-md ${activeSection === 'mensajes' ? "bg-teal-600" : "hover:bg-teal-600"}`}
-            onClick={() => setActiveSection('mensajes')}
-          >
-            <MessageSquare className="mr-3" size={18} /> Mensajes
-          </button>
+          <NavItem 
+            icon={<MessageSquare />} 
+            label="Mensajes" 
+            section="mensajes" 
+          />
 
           {userType === 'usuario' && (
-            <button
-              className={`flex items-center w-full p-3 rounded-md ${activeSection === 'reportes' ? "bg-teal-600" : "hover:bg-teal-600"}`}
-              onClick={() => setActiveSection('reportes')}
-            >
-              <BarChart2 className="mr-3" size={18} /> Enviar reportes
-            </button>
+            <NavItem 
+              icon={<BarChart2 />} 
+              label="Enviar reportes" 
+              section="reportes" 
+            />
           )}
 
           {userType === 'arrendador' && (
-            <button
-              className={`flex items-center w-full p-3 rounded-md ${activeSection === 'propiedades' ? "bg-teal-600" : "hover:bg-teal-600"}`}
-              onClick={() => setActiveSection('propiedades')}
-            >
-              <Building2 className="mr-3" size={18} /> Mis propiedades
-            </button>
+            <NavItem 
+              icon={<Building2 />} 
+              label="Mis propiedades" 
+              section="propiedades" 
+            />
           )}
 
-          <button
-            className={`flex items-center w-full p-3 rounded-md ${activeSection === 'inicio' ? "bg-teal-600" : "hover:bg-teal-600"}`}
+          <NavItem 
+            icon={<Home />} 
+            label="Inicio" 
+            section="inicio" 
             onClick={() => router.push('/landing')}
-          >
-            <Home className="mr-3" size={18} /> Inicio
-          </button>
+          />
 
           {userType === 'usuario' && (
-            <button
-              className={`flex items-center w-full pt-3 pl-2 pb-3 rounded-md ${activeSection === 'registro_arrendador' ? "bg-teal-600" : "hover:bg-teal-600"
-                }`}
-              // En lugar de Link o router.push, abrimos el modal
+            <NavItem 
+              icon={<Users />} 
+              label="Registrarse como Arrendatario" 
+              section="registro_arrendador" 
               onClick={() => setShowLandlordModal(true)}
-            >
-              <Users className="mr-3" size={18} /> Registrarse como Arrendatario
-            </button>
+            />
           )}
 
           {/* Botón para cerrar sesión */}
-          <button
-            className="flex items-center w-full p-3 text-white hover:bg-teal-600 rounded-md mt-2"
+          <NavItem 
+            icon={<LogOut />} 
+            label="Cerrar sesión" 
+            section="logout" 
             onClick={handleLogout}
-          >
-            <LogOut className="mr-3" size={18} /> Cerrar sesión
-          </button>
+          />
         </nav>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        {/* Header */}
+        {/* Header - Modificado para que la flecha en el encabezado controle el sidebar */}
         <div className="bg-teal-600 text-white p-4 flex items-center">
-          <button className="mr-4">
+          <button 
+            className="mr-4" 
+            onClick={toggleSidebar} // Cambiamos la función para que maneje el toggle del sidebar
+          >
             <ChevronLeft size={24} />
           </button>
           <h1 className="text-xl font-medium">
