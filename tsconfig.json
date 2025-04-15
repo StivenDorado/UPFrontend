@@ -22,6 +22,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/components/general/cards-arrendador/card.jsx", "src/app/helpcenter/page.jsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/components/general/cards-arrendador/card.tsx", "src/app/helpcenter/page.jsx", "src/app/components/Profile/favorites.jsx"],
   "exclude": ["node_modules"]
 }
