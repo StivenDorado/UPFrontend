@@ -6,6 +6,7 @@ import { authContext } from "@/context/AuthContext";
 
 interface AccommodationCardProps {
   id: string | number;
+  onFavoriteToggle?: () => void;
 }
 
 interface Caracteristicas {
@@ -28,7 +29,7 @@ interface Propiedad {
   precio: string | number;
 }
 
-export default function AccommodationCard({ id }: AccommodationCardProps): JSX.Element {
+export default function AccommodationCard({ id, onFavoriteToggle }: AccommodationCardProps): JSX.Element {
   const { user, loading: authLoading } = useContext(authContext) as {
     user: { uid: string; token: string } | null;
     loading: boolean;
@@ -42,16 +43,13 @@ export default function AccommodationCard({ id }: AccommodationCardProps): JSX.E
   const [showLoginPrompt, setShowLoginPrompt] = useState<boolean>(false);
   const router = useRouter();
 
-  // Cargar datos de la propiedad
   useEffect(() => {
     const fetchPropiedad = async () => {
       try {
         const response = await fetch(
           `http://localhost:4000/api/propiedades/publicacion/${id}`
         );
-        if (!response.ok) {
-          throw new Error("Error al cargar la propiedad");
-        }
+        if (!response.ok) throw new Error("Error al cargar la propiedad");
         const data: Propiedad = await response.json();
         setPropiedad(data);
       } catch (err: any) {
@@ -63,31 +61,19 @@ export default function AccommodationCard({ id }: AccommodationCardProps): JSX.E
     fetchPropiedad();
   }, [id]);
 
-  // Verificar estado de favoritos
   useEffect(() => {
     const checkFavoriteStatus = async () => {
       if (user && !authLoading) {
         try {
           const response = await fetch(
             `http://localhost:4000/api/favorites/${user.uid}`,
-            {
-              headers: {
-                Authorization: `Bearer ${user.token}`,
-              },
-            }
+            { headers: { Authorization: `Bearer ${user.token}` } }
           );
           if (response.ok) {
             const favorites = await response.json();
             const isFav = favorites.some((fav: any) => {
-              const favId =
-                fav?.propiedadId ??
-                fav?.id ??
-                fav?.propiedad?._id ??
-                fav?.propiedad?.id;
-
-              if (favId === undefined || id === undefined) return false;
-
-              return favId.toString() === id.toString();
+              const favId = fav?.propiedadId ?? fav?.id ?? fav?.propiedad?._id ?? fav?.propiedad?.id;
+              return favId?.toString() === id?.toString();
             });
             setIsFavorite(isFav);
           }
@@ -117,17 +103,14 @@ export default function AccommodationCard({ id }: AccommodationCardProps): JSX.E
           "Content-Type": "application/json",
           Authorization: `Bearer ${user.token}`,
         },
-        body: !isFavorite
-          ? JSON.stringify({
-              usuarioUid: user.uid,
-              propiedadId: id,
-            })
-          : null,
+        body: !isFavorite ? JSON.stringify({ usuarioUid: user.uid, propiedadId: id }) : null,
       });
+      
       if (response.ok) {
         setIsFavorite(!isFavorite);
+        if (onFavoriteToggle) onFavoriteToggle();
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error actualizando favoritos:", error);
     }
   };
@@ -157,7 +140,6 @@ export default function AccommodationCard({ id }: AccommodationCardProps): JSX.E
 
   return (
     <div className="relative">
-      {/* Modal login */}
       {showLoginPrompt && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg max-w-sm mx-auto">
@@ -181,7 +163,6 @@ export default function AccommodationCard({ id }: AccommodationCardProps): JSX.E
         </div>
       )}
 
-      {/* Tarjeta de propiedad */}
       <div
         className="w-full max-w-xs mx-auto bg-white text-gray-800 border-2 border-gray-200 rounded-lg overflow-hidden cursor-pointer transition-transform hover:scale-105 shadow-lg hover:shadow-xl"
         onClick={handleCardClick}
