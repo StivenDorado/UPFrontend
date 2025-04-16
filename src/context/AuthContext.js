@@ -7,7 +7,9 @@ import {
   GoogleAuthProvider, 
   signInWithPopup, 
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  confirmPasswordReset
 } from "firebase/auth";
 
 export const authContext = createContext();
@@ -22,6 +24,29 @@ export const useAuth = () => {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Función para enviar correo de recuperación
+  const sendPasswordReset = async (email) => {
+    try {
+      await sendPasswordResetEmail(auth, email);
+      return true;
+    } catch (error) {
+      console.error("Error al enviar correo de recuperación:", error);
+      throw error;
+    }
+  };
+
+  // Función para confirmar nueva contraseña
+  const confirmPassword = async (oobCode, newPassword) => {
+    try {
+      await confirmPasswordReset(auth, oobCode, newPassword);
+      return true;
+    } catch (error) {
+      console.error("Error al restablecer contraseña:", error);
+      throw error;
+    }
+  };
 
   const verificarArrendador = async (token, userUid) => {
     try {
@@ -34,8 +59,6 @@ export function AuthProvider({ children }) {
       });
 
       const data = await res.json();
-      console.log("Respuesta del endpoint de arrendador:", data);
-
       if (Array.isArray(data)) {
         const arrendador = data.find((p) => p.uid.trim() === userUid.trim());
         if (arrendador) {
@@ -43,7 +66,6 @@ export function AuthProvider({ children }) {
           return true;
         }
       }
-
       return false;
     } catch (error) {
       console.error("Error verificando arrendador:", error);
@@ -60,7 +82,6 @@ export function AuthProvider({ children }) {
           Authorization: `Bearer ${token}`,
         },
       });
-
       if (res.status === 404) return false;
       if (!res.ok) throw new Error("Error en la verificación del usuario");
       return true;
@@ -80,13 +101,7 @@ export function AuthProvider({ children }) {
         },
         body: JSON.stringify(usuarioData),
       });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        console.log("Error registrando usuario:", errData);
-      } else {
-        console.log("Usuario registrado exitosamente en la BD");
-      }
+      if (!res.ok) throw new Error("Error registrando usuario");
     } catch (error) {
       console.error("Error en el registro del usuario:", error);
     }
@@ -94,28 +109,21 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setLoading(true);
       if (firebaseUser) {
         try {
           const token = await firebaseUser.getIdToken(true);
-          console.log("Token obtenido en AuthContext:", token);
-
           const esArrendador = await verificarArrendador(token, firebaseUser.uid);
-          console.log("Resultado verificación arrendador:", esArrendador);
-
+          
           if (!esArrendador) {
             const yaRegistrado = await verificarUsuario(token, firebaseUser.uid);
-
             if (!yaRegistrado) {
-              const usuarioData = {
+              await registrarUsuario(token, {
                 uid: firebaseUser.uid,
                 nombres_apellidos: firebaseUser.displayName || "Nombre no proporcionado",
                 email: firebaseUser.email,
                 fotoPerfil: firebaseUser.photoURL || null,
-              };
-              console.log("Registrando usuario con datos:", usuarioData);
-              await registrarUsuario(token, usuarioData);
-            } else {
-              console.log("El usuario ya está registrado como Usuario");
+              });
             }
           }
 
@@ -135,15 +143,14 @@ export function AuthProvider({ children }) {
       } else {
         setUser(null);
       }
+      setLoading(false);
     });
-
     return () => unsubscribe();
   }, []);
 
   const login = async (email, password) => {
     try {
-      const response = await signInWithEmailAndPassword(auth, email, password);
-      return response;
+      return await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
       console.error("Error en login:", error);
       throw error;
@@ -153,8 +160,7 @@ export function AuthProvider({ children }) {
   const loginWithGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      const response = await signInWithPopup(auth, provider);
-      return response;
+      return await signInWithPopup(auth, provider);
     } catch (error) {
       console.error("Error en login con Google:", error);
       throw error;
@@ -163,8 +169,7 @@ export function AuthProvider({ children }) {
 
   const register = async (email, password) => {
     try {
-      const response = await createUserWithEmailAndPassword(auth, email, password);
-      return response;
+      return await createUserWithEmailAndPassword(auth, email, password);
     } catch (error) {
       console.error("Error en registro:", error);
       throw error;
@@ -173,10 +178,9 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
-      const response = await signOut(auth);
       localStorage.removeItem("arrendadorId");
+      await signOut(auth);
       setUser(null);
-      return response;
     } catch (error) {
       console.error("Error en logout:", error);
       throw error;
@@ -184,7 +188,18 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <authContext.Provider value={{ user, setUser, register, login, loginWithGoogle, logout }}>
+    <authContext.Provider 
+      value={{ 
+        user,
+        loading,
+        register,
+        login,
+        loginWithGoogle,
+        logout,
+        sendPasswordReset,
+        confirmPassword
+      }}
+    >
       {children}
     </authContext.Provider>
   );
