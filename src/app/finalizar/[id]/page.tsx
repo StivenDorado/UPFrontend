@@ -234,7 +234,7 @@ export default function ConfirmationPage() {
               </div>
               <div className="flex flex-col gap-4">
                 <div className="flex justify-between py-3 border-t" style={{ borderColor: "#41BFB3" }}>
-                  <div className="font-medium" style={{ color: "#275950" }}>Precio por noche</div>
+                  <div className="font-medium" style={{ color: "#275950" }}>Precio al mes</div>
                   <div className="font-semibold" style={{ color: "#260101" }}>{formatPrecio(property.precio)}</div>
                 </div>
                 <div className="flex justify-between py-3 border-t" style={{ borderColor: "#41BFB3" }}>

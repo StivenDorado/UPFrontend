@@ -105,7 +105,7 @@ export default function AccommodationCard({ id, onFavoriteToggle }: Accommodatio
         },
         body: !isFavorite ? JSON.stringify({ usuarioUid: user.uid, propiedadId: id }) : null,
       });
-      
+
       if (response.ok) {
         setIsFavorite(!isFavorite);
         if (onFavoriteToggle) onFavoriteToggle();
@@ -154,10 +154,12 @@ export default function AccommodationCard({ id, onFavoriteToggle }: Accommodatio
               </button>
               <button
                 onClick={() => router.push("/login")}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                className="px-4 py-2 text-white rounded hover:brightness-110"
+                style={{ backgroundColor: "#41BFB3" }}
               >
                 Iniciar sesión
               </button>
+
             </div>
           </div>
         </div>
@@ -180,16 +182,14 @@ export default function AccommodationCard({ id, onFavoriteToggle }: Accommodatio
             }}
           />
           <button
-            className={`absolute top-3 right-3 bg-white/90 p-2 rounded-full transition-colors shadow-sm ${
-              authLoading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"
-            }`}
+            className={`absolute top-3 right-3 bg-white/90 p-2 rounded-full transition-colors shadow-sm ${authLoading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"
+              }`}
             onClick={handleFavorite}
             disabled={authLoading}
           >
             <Heart
-              className={`h-5 w-5 ${
-                isFavorite ? "fill-red-500 text-red-500" : "text-gray-800"
-              }`}
+              className={`h-5 w-5 ${isFavorite ? "fill-red-500 text-red-500" : "text-gray-800"
+                }`}
             />
           </button>
         </div>
