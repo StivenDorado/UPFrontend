@@ -192,13 +192,13 @@ export default function AccommodationCard({ id }) {
             Ver
           </button>
 
-          <button
+          {/* <button
             type="button"
             onClick={handleEdit}
             className="flex-1 bg-gray-600 text-white px-3 py-2 rounded-md hover:bg-gray-700 text-sm flex items-center justify-center gap-1"
           >
             <Pen className="h-4 w-4" />
-          </button>
+          </button> */}
           <button
             type="button"
             onClick={handleDelete}

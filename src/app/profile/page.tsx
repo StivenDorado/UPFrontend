@@ -22,7 +22,9 @@ import {
 import InformacionPersonal from '../components/Profile/InformacionPersonal';
 import ListaFavoritos from '../components/Profile/ListaFavoritos';
 import SolicitudesReservas from '../components/Profile/SolicitudReserva';
-import SolicitudCitas from '../components/profile/SolicitudCita';
+import CitasArrendador from '../components/Profile/CitasArrendador';
+import SolicitudCitaAprendiz from '../components/Profile/SolicitudCitaAprendiz';
+
 import MisPropiedades from '../components/Profile/MisPropiedades';
 import Mensajes from '../components/Profile/Mensajes';
 import OfertasPrecio from '../components/Profile/OfertasPrecio';
@@ -36,14 +38,9 @@ const ProfileInterface = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Estado para manejar el menú colapsable
   const [isCollapsed, setIsCollapsed] = useState(false);
-
-  // Leemos el parámetro 'section' (si no existe, usamos 'perfil')
   const initialSection = searchParams.get('section') || 'perfil';
   const [activeSection, setActiveSection] = useState(initialSection);
-
-  // Estado para controlar la visibilidad del modal
   const [showLandlordModal, setShowLandlordModal] = useState(false);
 
   useEffect(() => {
@@ -51,15 +48,12 @@ const ProfileInterface = () => {
     setActiveSection(paramSection);
   }, [searchParams]);
 
-  // Determinamos el tipo de usuario según la propiedad "arrendador" del usuario
   const userType = user && user.arrendador ? 'arrendador' : 'usuario';
 
-  // Si el usuario aún no está cargado, mostramos un mensaje de carga
   if (!user) {
     return <div>Cargando...</div>;
   }
 
-  // Función para cerrar sesión y redirigir a landing
   const handleLogout = async () => {
     try {
       await logout();
@@ -69,12 +63,10 @@ const ProfileInterface = () => {
     }
   };
 
-  // Función para alternar el estado del sidebar
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
   };
 
-  // Renderizamos el contenido de cada sección
   const renderContent = () => {
     switch (activeSection) {
       case 'perfil':
@@ -83,8 +75,10 @@ const ProfileInterface = () => {
         return <InformacionPersonal />;
       case 'favoritos':
         return <ListaFavoritos />;
-      case 'solicitudes_citas':
-        return <SolicitudCitas />;
+      case 'solicitudes_citas_aprendiz':
+        return <SolicitudCitaAprendiz />;
+      case 'solicitudes_citas_arrendador': // Corregido para que coincida con el NavItem
+        return <CitasArrendador />;
       case 'solicitudes_reservas':
         return <SolicitudesReservas />;
       case 'ofertas':
@@ -102,7 +96,6 @@ const ProfileInterface = () => {
     }
   };
 
-  // Componente NavItem para simplificar la creación de elementos de navegación
   const NavItem = ({ icon, label, section, onClick }) => {
     const isActive = activeSection === section;
     
@@ -125,17 +118,12 @@ const ProfileInterface = () => {
 
   return (
     <div className="flex h-screen bg-white">
-      {/* Sidebar - ajustamos el ancho según el estado */}
       <div 
         className={`${
           isCollapsed ? 'w-20' : 'w-72'
         } bg-teal-700 text-white p-4 transition-all duration-300 relative`}
       >
-        {/* Eliminamos el botón de toggle que tenía la X */}
-        
-        {/* Perfil del usuario */}
         <div className={`flex ${isCollapsed ? 'justify-center' : 'items-center'} mb-8`}>
-          {/* Foto de perfil */}
           {user.photoURL ? (
             <img
               src={user.photoURL}
@@ -185,7 +173,7 @@ const ProfileInterface = () => {
               <NavItem 
                 icon={<Calendar />} 
                 label="Solicitudes para citas" 
-                section="solicitudes_citas" 
+                section="solicitudes_citas_aprendiz"
               />
               
               <NavItem 
@@ -199,7 +187,7 @@ const ProfileInterface = () => {
               <NavItem 
                 icon={<Calendar />} 
                 label="Solicitudes de citas" 
-                section="solicitudes_citas" 
+                section="solicitudes_citas_arrendador"
               />
               
               <NavItem 
@@ -248,7 +236,6 @@ const ProfileInterface = () => {
             />
           )}
 
-          {/* Botón para cerrar sesión */}
           <NavItem 
             icon={<LogOut />} 
             label="Cerrar sesión" 
@@ -258,28 +245,24 @@ const ProfileInterface = () => {
         </nav>
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        {/* Header - Modificado para que la flecha en el encabezado controle el sidebar */}
         <div className="bg-teal-600 text-white p-4 flex items-center">
           <button 
             className="mr-4" 
-            onClick={toggleSidebar} // Cambiamos la función para que maneje el toggle del sidebar
+            onClick={toggleSidebar}
           >
-            <ChevronLeft size={24} />
+            {isCollapsed ? <ChevronRight size={24} /> : <ChevronLeft size={24} />}
           </button>
           <h1 className="text-xl font-medium">
             {userType === 'arrendador' ? "Perfil Arrendador" : "Perfil Usuario"}
           </h1>
         </div>
 
-        {/* Contenido basado en activeSection */}
         <div className="p-4">
           {renderContent()}
         </div>
       </div>
 
-      {/* Renderiza el modal solo si showLandlordModal === true */}
       {showLandlordModal && (
         <LandlordRegistrationModal onClose={() => setShowLandlordModal(false)} />
       )}
