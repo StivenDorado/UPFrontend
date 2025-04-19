@@ -198,7 +198,7 @@ export default function Resenas() {
         </form>
       </div>
 
-      {/* Error / Debug */}
+      {/* Error / Debug 
       {error && (
         <div className="bg-red-100 p-3 rounded text-red-700 mb-4">
           <p className="font-medium">Error:</p>
@@ -224,7 +224,7 @@ export default function Resenas() {
               : debugInfo.response}
           </pre>
         </div>
-      )}
+      )} */}
 
       {/* Lista de reseñas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">

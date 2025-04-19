@@ -92,7 +92,7 @@ export default function AccommodationCard({ id }) {
 
   const handleEdit = (e) => {
     e.stopPropagation();
-    router.push(`/editar-propiedad/${id}`);
+    router.push(`/editar-publicacion/${id}`);
   };
 
   const handleView = (e, id) => {
@@ -115,7 +115,7 @@ export default function AccommodationCard({ id }) {
   const handleCardClick = async () => {
     // Incrementar la cantidad de vistas en el backend antes de redirigir
     await incrementarVistas();
-    router.push(`/descripcionPropiedad/${id}`);
+    router.push(`/propiedadesPublicadas/${id}`);
   };
 
   if (!visible) return null;

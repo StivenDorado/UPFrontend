@@ -6,29 +6,38 @@ import Header from "../components/general/header/Headerlg";
 import Footer from "../components/general/footer/Footer";
 import { useRouter } from "next/navigation";
 
-// Importar el MapaComponent dinámicamente sin SSR
-const MapaComponent = dynamic(() => import("../components/Map/MapaComponent"), { 
+const MapaComponent = dynamic(() => import("../components/Map/MapaComponent"), {
   ssr: false,
-  loading: () => <p>Cargando mapa...</p>
+  loading: () => <p>Cargando mapa...</p>,
 });
 
 export default function AlojamientoForm() {
   const { user } = useAuth();
   const router = useRouter();
 
-  // Estados para los datos del formulario
   const [formData, setFormData] = useState({
     nombre: "",
     direccion: "",
     costo: "",
     descripcion: "",
   });
-  // Estado para la posición; por defecto se asignan las coordenadas de Bogotá
+
   const [position, setPosition] = useState<[number, number]>([4.5709, -74.2973]);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Reverse geocoding: Convertir coordenadas a dirección
+  // Función para mostrar valor en formato COP (estilo Nequi)
+  const formatCurrency = (value: string) => {
+    const numericValue = value.replace(/\D/g, ""); // Elimina caracteres no numéricos
+    const number = parseInt(numericValue, 10);
+    if (isNaN(number)) return "";
+    return number.toLocaleString("es-CO", {
+      style: "currency",
+      currency: "COP",
+      minimumFractionDigits: 0,
+    });
+  };
+
   const reverseGeocode = async (lat: number, lng: number) => {
     setIsSearching(true);
     try {
@@ -36,14 +45,13 @@ export default function AlojamientoForm() {
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
       );
       const data = await response.json();
-      console.log("Respuesta reverseGeocode:", data);
-      
       if (data && data.address) {
-        const address = data.display_name || 
-          `${data.address.road || ''} ${data.address.house_number || ''}, ${data.address.city || data.address.town || data.address.village || ''}`;
-        setFormData(prev => ({
+        const address =
+          data.display_name ||
+          `${data.address.road || ""} ${data.address.house_number || ""}, ${data.address.city || data.address.town || data.address.village || ""}`;
+        setFormData((prev) => ({
           ...prev,
-          direccion: address.trim()
+          direccion: address.trim(),
         }));
         setError(null);
       }
@@ -55,13 +63,14 @@ export default function AlojamientoForm() {
     }
   };
 
-  // Geocoding: Convertir dirección a coordenadas
   const geocodeAddress = async (address: string) => {
     if (!address) return;
     setIsSearching(true);
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          address
+        )}`
       );
       const data = await response.json();
       if (data && data.length > 0) {
@@ -79,7 +88,6 @@ export default function AlojamientoForm() {
     }
   };
 
-  // Ejecutar geocodificación cuando el campo dirección cambie (debounce de 1 segundo)
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
       if (formData.direccion.trim().length > 3) {
@@ -89,12 +97,13 @@ export default function AlojamientoForm() {
     return () => clearTimeout(delayDebounce);
   }, [formData.direccion]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // Maneja el envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -103,19 +112,19 @@ export default function AlojamientoForm() {
       return;
     }
 
-    // Si deseas que el usuario no envíe la ubicación por defecto, mantén la siguiente validación.
-    // Si deseas permitir la ubicación por defecto, puedes eliminarla.
     if (position[0] === 4.5709 && position[1] === -74.2973) {
       setError("Por favor selecciona una ubicación válida en el mapa");
       return;
     }
 
     const arrendador_uid = user.uid;
+    const precioEntero = parseInt(formData.costo.replace(/\D/g, ""), 10);
+
     const dataToSend = {
       titulo: formData.nombre,
       descripcion: formData.descripcion,
       direccion: formData.direccion,
-      precio: parseFloat(formData.costo),
+      precio: precioEntero,
       arrendador_uid,
       lat: position[0],
       lng: position[1],
@@ -203,10 +212,13 @@ export default function AlojamientoForm() {
                 <input
                   id="costo"
                   name="costo"
-                  type="number"
-                  value={formData.costo}
-                  onChange={handleInputChange}
-                  placeholder="Ej: 1500"
+                  type="text"
+                  value={formatCurrency(formData.costo)}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/\D/g, "");
+                    setFormData({ ...formData, costo: raw });
+                  }}
+                  placeholder="Ej: $1.500.000"
                   required
                   className="w-full px-3 py-2 border border-[#9BF2EA] rounded-md focus:outline-none focus:ring-2 focus:ring-[#41BFB3]"
                 />
@@ -238,7 +250,7 @@ export default function AlojamientoForm() {
             </form>
           </div>
 
-          {/* Mapa para seleccionar ubicación */}
+          {/* Mapa */}
           <div className="bg-white p-6 rounded-lg shadow-md border border-[#9BF2EA]">
             <div className="mb-4">
               <h2 className="text-xl font-semibold text-[#275950]">Ubicación</h2>
@@ -248,10 +260,10 @@ export default function AlojamientoForm() {
             </div>
 
             <div className="h-[400px]">
-              <MapaComponent 
-                position={position} 
-                setPosition={setPosition} 
-                updateAddress={reverseGeocode} 
+              <MapaComponent
+                position={position}
+                setPosition={setPosition}
+                updateAddress={reverseGeocode}
               />
             </div>
           </div>
