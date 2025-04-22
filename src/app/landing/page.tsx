@@ -22,7 +22,7 @@ export default function Landing() {
     user: { uid: string; token: string } | null;
     loading: boolean;
   };
-  
+
   const prevUserRef = useRef(user); // Para trackear el estado anterior del usuario
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [properties, setProperties] = useState<Property[]>([]);
@@ -101,17 +101,16 @@ export default function Landing() {
         onFiltersClick={() => setFiltersOpen(true)}
       />
 
-      <section className="p-4 bg-[#275950]">
+      <section className="p-4 bg-[#2A8C82]">
         <div className="flex justify-between w-full px-8 mb-4">
           {categories.map((category) => (
             <button
               key={category.name}
               onClick={() => setSelectedCategory(category.name)}
-              className={`flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium transition-colors flex-1 mx-2 ${
-                selectedCategory === category.name
-                  ? "bg-[#9BF2EA] text-[#275950]"
-                  : "bg-[#9BF2EA] text-[#275950] hover:bg-[#8ad9d1]"
-              }`}
+              className={`flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium transition-colors flex-1 mx-2 ${selectedCategory === category.name
+                ? "bg-[#9BF2EA] text-[#275950]"
+                : "bg-[#9BF2EA] text-[#275950] hover:bg-[#8ad9d1]"
+                }`}
             >
               {category.icon}
               <span className="ml-2">{category.name}</span>
@@ -149,13 +148,14 @@ export default function Landing() {
       </section>
 
       <FiltersMenu
-        isOpen={isFiltersOpen}
-        onClose={() => setFiltersOpen(false)}
-        onApplyFilters={(filters: Filters) => {
-          setAppliedFilters(filters);
-          setFiltersOpen(false);
-        }}
-      />
+  isOpen={isFiltersOpen}
+  onClose={() => setFiltersOpen(false)}
+  onApplyFilters={(filters: Filters) => {  // Añade ": Filters" aquí
+    setAppliedFilters(filters);
+    // También cerramos el modal aquí para asegurarnos
+    setFiltersOpen(false);
+  }}
+/>
       <Footer />
     </div>
   );
