@@ -106,7 +106,7 @@ function Modal2({ onLogout }: ModalProps) {
           <MessageSquare size={18} />
         </button>
       </Link>
-      <Link href="/notificaciones">
+      {/* <Link href="/notificaciones">
         <button className="px-4 py-3 text-left hover:bg-gray-100 transition-colors flex items-center justify-between w-full">
           Notificaciones
           <div className="relative">
@@ -114,7 +114,7 @@ function Modal2({ onLogout }: ModalProps) {
             <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
           </div>
         </button>
-      </Link>
+      </Link> */}
       <Link href="/profile?section=favoritos">
         <button className="px-4 py-3 text-left hover:bg-gray-100 transition-colors flex items-center justify-between w-full">
           Listas de favoritos
@@ -154,7 +154,7 @@ function Modal3({ onLogout }: ModalProps) {
           <MessageSquare size={18} />
         </button>
       </Link>
-      <Link href="/notificaciones">
+      {/* <Link href="/notificaciones">
         <button className="px-4 py-3 text-left hover:bg-gray-100 transition-colors flex items-center justify-between w-full">
           Notificaciones
           <div className="relative">
@@ -162,13 +162,13 @@ function Modal3({ onLogout }: ModalProps) {
             <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
           </div>
         </button>
-      </Link>
+      </Link> */}
       <Link href="/alojamiento">
         <button className="px-4 py-3 text-left hover:bg-gray-100 transition-colors w-full">
           Publicar Alojamiento
         </button>
       </Link>
-      <Link href="/anuncios">
+      {/* <Link href="/anuncios">
         <button className="px-4 py-3 text-left hover:bg-gray-100 transition-colors flex items-center justify-between w-full">
           Administra los anuncios
           <div className="relative">
@@ -176,7 +176,7 @@ function Modal3({ onLogout }: ModalProps) {
             <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
           </div>
         </button>
-      </Link>
+      </Link> */}
       <Link href="/profile">
         <button className="px-4 py-3 text-left hover:bg-gray-100 transition-colors w-full">
           Perfil

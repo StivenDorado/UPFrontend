@@ -83,10 +83,10 @@ export default function PaginaPropiedad() {
 />
           </div>
           <div className="md:col-span-2 order-1 md:order-2">
-            <InformacionArrendador 
+            {/* <InformacionArrendador 
               arrendador={propiedad.arrendador}
               uid={propiedad.arrendador?.uid}
-            />
+            /> */}
           </div>
         </div>
       </main>
