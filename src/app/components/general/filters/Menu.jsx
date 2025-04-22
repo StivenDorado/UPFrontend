@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Wifi, Zap, Tv, Utensils, Droplet,
   Car, Settings, Snowflake, Flame,
@@ -6,6 +6,14 @@ import {
 } from "lucide-react";
 
 const FiltersMenu = ({ isOpen, onClose, onApplyFilters }) => {
+  // Estado local para controlar la visibilidad
+  const [isModalOpen, setIsModalOpen] = useState(isOpen);
+  
+  // Sincroniza el estado local con la prop isOpen
+  useEffect(() => {
+    setIsModalOpen(isOpen);
+  }, [isOpen]);
+
   const [filters, setFilters] = useState({
     tipo_vivienda: null,
     wifi: false,
@@ -42,19 +50,28 @@ const FiltersMenu = ({ isOpen, onClose, onApplyFilters }) => {
     }));
   };
 
-  const handleAplicar = () => {
-    onApplyFilters(filters);
-    onClose(); // Cierre garantizado
+  // Función de cierre
+  const closeModal = () => {
+    setIsModalOpen(false);
+    if (onClose) onClose();
   };
 
-  if (!isOpen) return null;
+  const handleAplicar = () => {
+    // Aplicamos los filtros
+    if (onApplyFilters) onApplyFilters(filters);
+    // Cerramos el modal usando nuestra función de cierre
+    closeModal();
+  };
+
+  // Si el modal no está abierto según nuestro estado local, no renderizamos nada
+  if (!isModalOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
       <div className="bg-white w-full max-w-3xl rounded-lg shadow-lg p-6 overflow-y-auto max-h-[90%] relative">
         <button
-          className="absolute top-4 left-4 text-gray-500 hover:text-black"
-          onClick={onClose}
+          className="absolute top-4 left-4 text-gray-500 hover:text-[#2A8C82]"
+          onClick={closeModal}
         >
           ←
         </button>
@@ -77,7 +94,7 @@ const FiltersMenu = ({ isOpen, onClose, onApplyFilters }) => {
                 onClick={() => handleTipoVivienda(item.value)}
                 className={`flex items-center justify-center p-3 border-2 rounded-lg ${
                   filters.tipo_vivienda === item.value
-                    ? "border-blue-500 bg-blue-50"
+                    ? "border-[#2A8C82] bg-[#E6F0EF]"
                     : "border-gray-200 hover:border-gray-400"
                 }`}
               >
@@ -108,7 +125,7 @@ const FiltersMenu = ({ isOpen, onClose, onApplyFilters }) => {
                 onClick={() => toggleServicio(item.key)}
                 className={`flex items-center p-3 border-2 rounded-lg ${
                   filters[item.key]
-                    ? "border-blue-500 bg-blue-50"
+                    ? "border-[#2A8C82] bg-[#E6F0EF]"
                     : "border-gray-200 hover:border-gray-400"
                 }`}
               >
@@ -135,7 +152,7 @@ const FiltersMenu = ({ isOpen, onClose, onApplyFilters }) => {
                     onClick={() => handleOption("amoblado", item.value)}
                     className={`flex-1 flex items-center justify-center p-2 border-2 rounded-lg ${
                       filters.amoblado === item.value
-                        ? "border-blue-500 bg-blue-50"
+                        ? "border-[#2A8C82] bg-[#E6F0EF]"
                         : "border-gray-200 hover:border-gray-400"
                     }`}
                   >
@@ -158,7 +175,7 @@ const FiltersMenu = ({ isOpen, onClose, onApplyFilters }) => {
                     onClick={() => handleOption("mascotas", item.value)}
                     className={`flex-1 flex items-center justify-center p-2 border-2 rounded-lg ${
                       filters.mascotas === item.value
-                        ? "border-blue-500 bg-blue-50"
+                        ? "border-[#2A8C82] bg-[#E6F0EF]"
                         : "border-gray-200 hover:border-gray-400"
                     }`}
                   >
@@ -172,8 +189,8 @@ const FiltersMenu = ({ isOpen, onClose, onApplyFilters }) => {
         </section>
 
         <button
-          className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          onClick={handleAplicar} // Usamos el handler corregido
+          className="w-full py-3 text-white rounded-lg transition-colors bg-[#2A8C82] hover:bg-[#23746D]"
+          onClick={handleAplicar}
         >
           Aplicar filtros
         </button>
