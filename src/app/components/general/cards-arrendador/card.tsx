@@ -2,6 +2,7 @@
 import { useState, useEffect, useContext, SyntheticEvent } from "react";
 import { Heart, MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { authContext } from "@/context/AuthContext";
 
 interface AccommodationCardProps {
@@ -72,7 +73,11 @@ export default function AccommodationCard({ id, onFavoriteToggle }: Accommodatio
           if (response.ok) {
             const favorites = await response.json();
             const isFav = favorites.some((fav: any) => {
-              const favId = fav?.propiedadId ?? fav?.id ?? fav?.propiedad?._id ?? fav?.propiedad?.id;
+              const favId =
+                fav?.propiedadId ??
+                fav?.id ??
+                fav?.propiedad?._id ??
+                fav?.propiedad?.id;
               return favId?.toString() === id?.toString();
             });
             setIsFavorite(isFav);
@@ -91,6 +96,7 @@ export default function AccommodationCard({ id, onFavoriteToggle }: Accommodatio
       setShowLoginPrompt(true);
       return;
     }
+
     try {
       const method = isFavorite ? "DELETE" : "POST";
       const url = isFavorite
@@ -103,7 +109,9 @@ export default function AccommodationCard({ id, onFavoriteToggle }: Accommodatio
           "Content-Type": "application/json",
           Authorization: `Bearer ${user.token}`,
         },
-        body: !isFavorite ? JSON.stringify({ usuarioUid: user.uid, propiedadId: id }) : null,
+        body: !isFavorite
+          ? JSON.stringify({ usuarioUid: user.uid, propiedadId: id })
+          : null,
       });
 
       if (response.ok) {
@@ -159,7 +167,6 @@ export default function AccommodationCard({ id, onFavoriteToggle }: Accommodatio
               >
                 Iniciar sesión
               </button>
-
             </div>
           </div>
         </div>
@@ -181,18 +188,31 @@ export default function AccommodationCard({ id, onFavoriteToggle }: Accommodatio
               }
             }}
           />
-          <button
-            className={`absolute top-3 right-3 bg-white/90 p-2 rounded-full transition-colors shadow-sm ${authLoading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"
-              }`}
+          <motion.button
             onClick={handleFavorite}
             disabled={authLoading}
+            className={`absolute top-3 right-3 bg-white/90 p-2 rounded-full shadow-sm ${
+              authLoading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"
+            }`}
+            whileTap={{ scale: 0.8 }}
+            animate={
+              isFavorite
+                ? {
+                    scale: [1, 1.4, 0.9, 1],
+                    rotate: [0, -10, 10, 0]
+                  }
+                : { scale: 1, rotate: 0 }
+            }
+            transition={{ type: "spring", stiffness: 500, damping: 20 }}
           >
             <Heart
-              className={`h-5 w-5 ${isFavorite ? "fill-red-500 text-red-500" : "text-gray-800"
-                }`}
+              className={`h-5 w-5 ${
+                isFavorite ? "fill-red-500 text-red-500" : "text-gray-800"
+              }`}
             />
-          </button>
+          </motion.button>
         </div>
+
         <div className="p-4">
           <h3 className="font-semibold text-lg">{propiedad.titulo}</h3>
           <p className="text-sm flex items-center text-gray-600">
@@ -214,20 +234,18 @@ export default function AccommodationCard({ id, onFavoriteToggle }: Accommodatio
           </button>
           {showDetails && (
             <div className="mt-3 pt-3 border-t border-gray-200">
-              <div className="mt-2">
-                <p className="text-sm font-medium mb-1 text-gray-800">
-                  Características:
-                </p>
-                <div className="flex flex-wrap gap-1">
-                  {features.map((feature, index) => (
-                    <span
-                      key={index}
-                      className="bg-gray-100 text-xs rounded-full px-2 py-1 text-gray-700 border border-gray-200"
-                    >
-                      {feature}
-                    </span>
-                  ))}
-                </div>
+              <p className="text-sm font-medium mb-1 text-gray-800">
+                Características:
+              </p>
+              <div className="flex flex-wrap gap-1">
+                {features.map((feature, index) => (
+                  <span
+                    key={index}
+                    className="bg-gray-100 text-xs rounded-full px-2 py-1 text-gray-700 border border-gray-200"
+                  >
+                    {feature}
+                  </span>
+                ))}
               </div>
             </div>
           )}

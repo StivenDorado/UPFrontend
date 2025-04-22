@@ -8,9 +8,11 @@ import Header from "../../components/general/header/Headerlg";
 import Footer from "../../components/general/footer/Footer";
 import { ReservationModal } from "../../components/Apprentice/modales/ReservasModal";
 import { AppointmentModal } from "../../components/Apprentice/modales/CitasModal";
+import { useAuth } from "../../../context/AuthContext"; // Ajusta la ruta según tu estructura
 
 export default function PropertyPage() {
   const { id } = useParams();
+  const { user } = useAuth(); // Obtén el usuario autenticado
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -41,6 +43,18 @@ export default function PropertyPage() {
   if (loading) return <div className="text-center py-8">Cargando propiedad...</div>;
   if (error) return <div className="text-center py-8 text-red-500">{error}</div>;
   if (!property) return <div className="text-center py-8">Propiedad no encontrada</div>;
+
+  // Verificar si el usuario está autenticado antes de abrir el modal de oferta
+  const handleOpenOfferModal = () => {
+    if (!user || !user.uid) {
+      // Si no hay usuario autenticado, mostrar mensaje o redirigir a login
+      alert("Debes iniciar sesión para hacer una oferta");
+      // Opcionalmente: redirigir a página de login
+      // router.push('/login');
+      return;
+    }
+    setModals((prev) => ({ ...prev, offer: true }));
+  };
 
   const handleNextImage = () => {
     if (property.imagenes && currentImageIndex < property.imagenes.length - 1) {
@@ -157,7 +171,7 @@ export default function PropertyPage() {
             </div>
             
             <button
-              onClick={() => setModals((prev) => ({ ...prev, offer: true }))}
+              onClick={handleOpenOfferModal}
               className="bg-[#2A8C82] hover:bg-[#275950] text-white py-3 rounded transition-colors duration-200"
             >
               OFRECER PRECIO
@@ -168,7 +182,17 @@ export default function PropertyPage() {
       <Footer />
 
       {/* Modales */}
-      <PriceOfferModal isOpen={modals.offer} onClose={() => setModals((prev) => ({ ...prev, offer: false }))} />
+      <PriceOfferModal 
+        isOpen={modals.offer} 
+        onClose={() => setModals((prev) => ({ ...prev, offer: false }))} 
+        usuarioUid={user?.uid || ""} 
+        propiedadId={parseInt(id as string)} 
+        productPrice={property.precio}
+        productImageUrl={property?.imagenes?.[0]?.url}
+        productRating={0}
+        reviewCount={0}
+        currency="COP"
+      />
       <ReservationModal 
         isOpen={modals.reservation} 
         onClose={() => setModals((prev) => ({ ...prev, reservation: false }))} 

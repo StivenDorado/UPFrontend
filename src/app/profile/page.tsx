@@ -16,18 +16,19 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Users
+  Users,
+  FileText // Added for reservation requests icon
 } from 'lucide-react';
 
 import InformacionPersonal from '../components/Profile/InformacionPersonal';
 import ListaFavoritos from '../components/Profile/ListaFavoritos';
-import SolicitudesReservas from '../components/Profile/SolicitudReserva';
+import SolicitudesReservas from '../components/Profile/OfertasPrecio';
 import CitasArrendador from '../components/Profile/CitasArrendador';
 import SolicitudCitaAprendiz from '../components/Profile/SolicitudCitaAprendiz';
 
 import MisPropiedades from '../components/Profile/MisPropiedades';
 import Mensajes from '../components/Profile/Mensajes';
-import OfertasPrecio from '../components/Profile/OfertasPrecio';
+import OfertasPrecio from '../components/Profile/SolicitudesReservas';
 import Perfil from '../components/Profile/Perfil';
 
 import { useAuth } from '../../context/AuthContext';
@@ -77,12 +78,12 @@ const ProfileInterface = () => {
         return <ListaFavoritos />;
       case 'solicitudes_citas_aprendiz':
         return <SolicitudCitaAprendiz />;
-      case 'solicitudes_citas_arrendador': // Corregido para que coincida con el NavItem
+      case 'solicitudes_citas_arrendador':
         return <CitasArrendador />;
       case 'solicitudes_reservas':
-        return <SolicitudesReservas />;
-      case 'ofertas':
         return <OfertasPrecio />;
+      case 'ofertas':
+        return <SolicitudesReservas />;
       case 'mensajes':
         return <Mensajes />;
       case 'reportes':
@@ -175,12 +176,6 @@ const ProfileInterface = () => {
                 label="Solicitudes para citas" 
                 section="solicitudes_citas_aprendiz"
               />
-              
-              <NavItem 
-                icon={<Clock />} 
-                label="Solicitudes de reservas" 
-                section="solicitudes_reservas" 
-              />
             </>
           ) : (
             <>
@@ -197,6 +192,13 @@ const ProfileInterface = () => {
               />
             </>
           )}
+          
+          {/* Added Solicitudes de reservas for both user types */}
+          <NavItem 
+            icon={<FileText />} 
+            label="Solicitudes de reservas" 
+            section="solicitudes_reservas" 
+          />
 
           <NavItem 
             icon={<MessageSquare />} 
