@@ -191,26 +191,21 @@ export default function AccommodationCard({ id, onFavoriteToggle }: Accommodatio
           <motion.button
             onClick={handleFavorite}
             disabled={authLoading}
-            className={`absolute top-3 right-3 bg-white/90 p-2 rounded-full shadow-sm ${
-              authLoading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"
-            }`}
+            className="absolute top-3 right-3 bg-white/90 p-2 rounded-full shadow-sm hover:bg-gray-100"
             whileTap={{ scale: 0.8 }}
             animate={
               isFavorite
-                ? {
-                    scale: [1, 1.4, 0.9, 1],
-                    rotate: [0, -10, 10, 0]
-                  }
+                ? { scale: [1, 1.4, 0.9, 1], rotate: [0, -10, 10, 0] }
                 : { scale: 1, rotate: 0 }
             }
-            transition={{ type: "spring", stiffness: 500, damping: 20 }}
+            transition={{ type: "tween", duration: 0.6 }}  // <-- usa 'tween' para más de dos keyframes
           >
             <Heart
-              className={`h-5 w-5 ${
-                isFavorite ? "fill-red-500 text-red-500" : "text-gray-800"
-              }`}
+              className={`h-5 w-5 ${isFavorite ? "fill-red-500 text-red-500" : "text-gray-800"
+                }`}
             />
           </motion.button>
+
         </div>
 
         <div className="p-4">
